@@ -52,3 +52,15 @@ ENTIDAD: LOCKERS
 - Creación inicial del TDD de Locker "tddLockers.md".
 
 ---
+
+## [1.0.0] - 2026-05-03
+### Added
+- Se agregan TDD separados para EquipmentLoan (TDD_0001_new-equipment-loan, TDD_0002_update-equipment-loan, TDD_0003_delete-equipment-loan) en /docs/TDDs
+- TDD_0001: Alta de préstamo con validación de restricción por categoría
+- TDD_0002: Devolución de préstamo con estados Returned y Damaged
+- TDD_0003: Cancelación de préstamo (baja lógica)
+
+### Removed
+- Se elimina equipment_loan.md de ./docs
+
+---
