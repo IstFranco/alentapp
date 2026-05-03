@@ -2,6 +2,16 @@
 
 Todos los cambios importantes de este proyecto se documentan en este archivo.
 
+ENTIDAD: MEDICAL CERTIFICATES
+---
+## [1.1.0] - 2026-05-03
+
+### Added
+- Se agregan TDD separados para Medical Certificates (0004_new, 0005_update, 0006_delete) en /docs/TDDs.
+
+### Removed
+- Se elimina el archivo anterior de certificados médicos.
+
 ENTIDAD: SPORTS
 ---
 ## [1.1.0] - 2026-05-03
