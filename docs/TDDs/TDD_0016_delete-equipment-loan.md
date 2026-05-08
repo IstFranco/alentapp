@@ -1,6 +1,6 @@
-# TDD-0003: Cancelación de Préstamo de Equipamiento (Delete EquipmentLoan)
+# TDD-0016: Cancelación de Préstamo de Equipamiento (Delete EquipmentLoan)
 
-| identificación | 0003 |
+| identificación | 0016 |
 |---------------|---|
 | estado        | Propuesto |
 | autor         | Franco Oyhenart |
@@ -26,10 +26,6 @@ Permitir la cancelación de préstamos registrados erróneamente o que necesitan
 - **Escenario de éxito**: Al cancelar un préstamo con estado "Loaned", el sistema cambia el estado a "Canceled", registra la fecha de cancelación y retorna código 200 OK.
 - **Escenario de fallo**: El sistema no puede conectarse a la base de datos; retorna error 500 Internal Server Error.
 
-#### Historia de Usuario 2: Validación de Préstamo Ya Procesado
-- **Como** sistema, **quiero** evitar cancelar préstamos que ya fueron devueltos, **para** mantener la integridad del historial.
-- **Escenario de éxito**: El préstamo tiene estado "Loaned" y se cancela correctamente.
-- **Escenario de fallo**: Se intenta cancelar un préstamo que ya tiene estado "Returned" o "Damaged"; el sistema retorna error 409 Conflict: "No se puede cancelar un préstamo que ya fue devuelto".
 
 #### Historia de Usuario 3: Preservación del Registro
 - **Como** administrador del sistema, **quiero** que los préstamos cancelados permanezcan en la base de datos, **para** mantener auditoría completa.

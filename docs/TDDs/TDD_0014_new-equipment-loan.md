@@ -1,6 +1,6 @@
-# TDD-0001: Alta de Préstamo de Equipamiento (Create EquipmentLoan)
+# TDD-0014: Alta de Préstamo de Equipamiento (Create EquipmentLoan)
 
-| identificación | 0001 |
+| identificación | 0004 |
 |---------------|---|
 | estado        | Propuesto |
 | autor         | Franco Oyhenart |
@@ -30,11 +30,6 @@ Permitir el registro de nuevos préstamos de material deportivo a socios del clu
 - **Como** administrativo, **quiero** que el sistema rechace automáticamente préstamos a socios "Cadet", **para** cumplir con la política del club.
 - **Escenario de éxito**: El sistema valida correctamente que el socio es "Senior" o "Lifetime" y permite el registro.
 - **Escenario de fallo**: Un socio de categoría "Cadet" intenta solicitar material; el sistema rechaza con error 403 Forbidden: "Los socios de categoría Cadet no están autorizados para solicitar préstamos de equipamiento".
-
-#### Historia de Usuario 3: Validación de Datos
-- **Como** sistema, **quiero** validar que todos los datos obligatorios estén presentes, **para** mantener la integridad.
-- **Escenario de éxito**: Se envía una solicitud con todos los campos requeridos correctamente; el sistema procede.
-- **Escenario de fallo**: Se envía una solicitud sin itemName; retorna error 400 Bad Request: "El nombre del ítem es requerido".
 
 ---
 

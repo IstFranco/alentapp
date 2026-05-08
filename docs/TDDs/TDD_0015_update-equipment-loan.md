@@ -1,6 +1,6 @@
-# TDD-0002: Devolución de Préstamo de Equipamiento (Update EquipmentLoan)
+# TDD-0015: Devolución de Préstamo de Equipamiento (Update EquipmentLoan)
 
-| identificación | 0002 |
+| identificación | 0015 |
 |---------------|---|
 | estado        | Propuesto |
 | autor         | Franco Oyhenart |
@@ -30,11 +30,6 @@ Permitir registrar la devolución de material deportivo prestado, actualizando e
 - **Como** administrativo, **quiero** poder marcar un préstamo como "Damaged" al devolverlo, **para** llevar control del estado del equipamiento.
 - **Escenario de éxito**: Al registrar una devolución con estado "Damaged", el sistema actualiza el préstamo y permite agregar notas sobre el daño.
 - **Escenario de fallo**: Se intenta marcar como "Damaged" sin proporcionar notas explicativas; el sistema retorna error 400 Bad Request.
-
-#### Historia de Usuario 3: Validación de Préstamo Ya Devuelto
-- **Como** sistema, **quiero** evitar devolver dos veces el mismo préstamo, **para** mantener la integridad de los datos.
-- **Escenario de éxito**: El préstamo tiene estado "Loaned" y se procesa correctamente.
-- **Escenario de fallo**: Se intenta devolver un préstamo que ya tiene estado "Returned"; el sistema retorna error 409 Conflict: "Este préstamo ya fue devuelto anteriormente".
 
 ---
 
