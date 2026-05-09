@@ -1,26 +1,34 @@
 | identificación | 04 |
 |---------------|---|
 | Estado        | Propuesto |
-| autor         | Lautaro Flores |
-| fecha         | 2026-05-03 |
-| título        | Registro de Certificado Médico |
+| Autor         | Lautaro Flores |
+| Fecha         | 2026-05-09 |
+| Título        | Registro de Nuevo Certificado Médico |
 
 # TDD-[0004]: Registro de Nuevo Certificado Médico
 
 ## 1. Contexto de Negocio
 
 ### 1.1. Objetivo
-Permitir a los administradores registrar nuevos certificados médicos en el sistema del Club Alentapp, definiendo los atributos principales como fecha de emisión, fecha de vencimiento y matrícula médica para habilitar al socio en la práctica deportiva.
+Permitir a los administradores registrar nuevos certificados médicos presentado por los socios, dejando asentadas la fecha de emisión, la fecha de vencimiento y la matrícula del profesional. Cada nuevo registro habilita al socio para la práctica deportiva e invalida automáticamente cualquier certificado anterior del mismo socio, garantizando que solo exista un único certificado vigente por persona.
 
 ### 1.2. User Persona
-*   **Administrativo**: Registrar de forma ágil y correcta los certificados médicos físicos que presentan los socios para asegurar que el club cuente con el respaldo sanitario necesario y que el socio quede habilitado para sus actividades sin demoras administrativas.
+*   **Administrativo del Club**: Registrar de forma rápida y confiable los certificados médicos físicos que presentan los socios, manteniendo un único certificado vigente por socio. 
 
 ### 1.3. Criterios de Aceptación (User Stories)
 
-#### Historia de Usuario 1: Crear Certificado Médico
-*   **Como** administrativo, **quiero** crear un nuevo certificado médico con sus fechas y matrícula, **para** que el socio cuente con el respaldo legal y sanitario para realizar deportes.
-*   **Escenario de éxito**: Si el administrativo completa de manera correcta los campos requeridos y la fecha de vencimiento es posterior a la de emisión, el sistema deberá crear el nuevo registro, notificar el éxito y marcar automáticamente como inactivos los certificados previos del socio.
-*   **Escenario de fallo**: Si el administrativo ingresa una fecha de vencimiento menor o igual a la de emisión, el sistema deberá responder con una advertencia de rango de fechas inválido y no permitir el alta del registro.
+#### Historia de Usuario 1: Registrar un nuevo Certificado Médico
+*   **Como** administrativo del club, **quiero** registar un nuevo certificado médico de un socio, **para** habilitarlo a realizar actividad deportiva y mantener actualizado el respaldo sanitario del club. 
+*   **Escenario de éxito**: Si el administrador completa correctamente todos los campos obligatorios y la fecha de vencimiento es posterior a la de emisión, el sistema crea el nuevo registro con `isValidated = false`, marca como inválidos los certificados activos anteriores del mismo socio en la misma operación, y devuelve una respuesta de éxito con el certificado creado.
+*   **Escenario de fallo**: Si el administrativo ingresa una fecha de vencimiento menor o igual a la de emisión, el sistema rechaza la operación con un mensaje claro de "rango de fechas inválido" y no persiste ningún cambio en la base de datos.
+
+### 1.4. Criterios Generales de Aceptación.
+*   El sistema debe validar que todos los campos obligatorios (`memberId`, `issueDate`, `expiryDate`, `doctorLicense`) estén presentes y tengan el formato correcto.
+*   El sistema debe validar que la fecha de vencimiento sea estrictamente posterior a la fecha de emisión.
+*   El sistema debe validar que el socio referenciado por `memberId` exista en la base de datos.
+*   El sistema debe inicializar el campo `isValidated` en `false` por defecto, ya que la validación administrativa es un paso posterior.
+*   El sistema debe garantizar que, al crear un nuevo certificado, todos los certificados anteriores del mismo socio que estuvieran activos pasen a `isValidated = false` dentro de la misma transacción atómica.
+*   El sistema debe permitir que coexistan múltiples certificados históricos de un mismo socio, pero solo uno puede tener `isValidated = true` en un momento dado.
 
 
 ## 2. Diseño Técnico
