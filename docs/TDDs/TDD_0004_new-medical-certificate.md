@@ -81,39 +81,43 @@ Se definirá la entidad **MedicalCertificate** que representa un cerificado méd
 
 ### 3.1. Definición del Puerto
 
-```typescript
-export interface MedicalCertificateRepository {
-  create(certificate: MedicalCertificate): Promise<MedicalCertificate>;
-  findByMemberId(memberId: string): Promise<MedicalCertificate[]>;
-  update(id: string, data: Partial<MedicalCertificate>): Promise<MedicalCertificate>;
-}
-```
+Puerto **`MedicalCertificateRepository`**. Para este caso de uso, los métodos relevantes son:
+
+*   **`createAndInvalidatePrevious(certificate: MedicalCertificate): Promise<MedicalCertificate>`**
+    Crea el nuevo certificado y, en la misma transacción, marca como inválidos (`isValidated = false`) todos los certificados activos anteriores del mismo socio. La operación es atómica: o se completa entera, o se revierte. Si el socio no tenía certificados activos previos, la invalidación no afecta filas y la creación se ejecuta normalmente. Devuelve el certificado recién creado.
+
+**Dependencias externas:** El caso de uso requiere acceso al `MemberRepository` (módulo de Member) para validar la existencia del socio referenciado, mediante el método `findById(memberId: string): Promise<Member | null>`.
 
 ### 3.2. Lógica del Caso de Uso
 **Caso de Uso:** `Registrar Nuevo Certificado` (CreateMedicalCertificate)
 
 **Flujo paso a paso:**
 
-1. Validar que los datos de entrada sean del tipo esperado y que los campos obligatorios estén presentes. Validar que la fecha de emisión (`issue_date`) no sea posterior a la fecha de vencimiento (`expiry_date`).
+1.  **Validación de formato de entrada.** Validar con `zod` que el DTO tenga todos los campos requeridos (`memberId`, `issueDate`, `expiryDate`, `doctorLicense`), que las fechas estén en formato ISO 8601 y que `doctorLicense` no sea una cadena vacía.
 
-2. Verificar la existencia del socio (`member_id`) en el sistema. Consultar si el socio ya posee certificados médicos registrados en la base de datos.
+2.  **Validación de regla de fechas.** Verificar que `expiryDate` sea estrictamente posterior a `issueDate`.
 
-3. Aplicar la regla de negocio: si existen registros anteriores, se deben invalidar o marcar como históricos para que solo el nuevo sea el vigente. Mapear los datos del DTO recibido a una entidad del dominio `MedicalCertificate`.
+3.  **Verificación de existencia del socio.** Consultar el repositorio de socios para confirmar que `memberId` corresponde a un socio existente.
 
-4. Persistir la nueva entidad a través de `MedicalCertificateRepository.create()`.
+4.  **Mapeo de DTO a entidad de dominio.** Construir una instancia de `MedicalCertificate` a partir del DTO. En este paso se transforman las fechas string a objetos `Date`, se inicializa `isValidated` en `false` y `deletedAt` en `null`. El `id` se genera como un UUID nuevo.
 
-5. Retornar el DTO de respuesta mapeado desde la entidad persistida con el código `201 Created`.
+5.  **Persistencia atómica.** Invocar `MedicalCertificateRepository.createAndInvalidatePrevious(certificate)`. Este método garantiza, dentro de una transacción, que cualquier certificado activo previo del socio quede con `isValidated = false`, y que el nuevo certificado quede persistido. Si la transacción falla, todos los cambios se revierten.
+
+6.  **Mapeo de entidad a DTO de respuesta.** Convertir la entidad persistida a `MedicalCertificateDto`, transformando las fechas `Date` a strings ISO 8601 y omitiendo el campo `deletedAt`.
+
+7.  **Respuesta exitosa.** Devolver el DTO con código `201 Created`.
 
 
 ## 4. Casos de Borde y Manejo de Errores
 
 | Escenario de Error | Validación / Regla de Negocio | Código HTTP |
 |-------------------|-------------------------------|-------------|
-| **Datos Faltantes** | Los campos obligatorios (member_id, issue_date, doctor_license) deben estar presentes. | 400 |
-| **Rango de Fechas Inválido** | La fecha de vencimiento (`expiry_date`) debe ser posterior a la de emisión. | 400 |
-| **Socio Inexistente** | El `member_id` proporcionado no existe en la base de datos. | 404 |
-| **Certificado Expirado** | No se permite dar de alta un certificado cuya fecha de vencimiento ya pasó. | 409 |
-| **Error de Infraestructura** | Falla la conexión con el contenedor de la base de datos. | 500 |
+| **Datos Faltantes** | Los campos obligatorios (`memberId`, `issueDate`, `expiryDate`, `doctorLicense`) no estan presentes o es nulo. | `400 Bad Request` |
+| **Formato inválido** | Las fechas no respetan el formato ISO 8601, el `memberId` no es un UUID válido, o `doctorLicense` es una cadena vacía. | `400 Bad Request` |
+| **Rango de Fechas Inválido** | `expiryDate` es menor o igual a `issueDate`. | `400 Bad Request` |
+| **Certificado vencido al cargar** | `expiryDate` es anterior a la fecha actual. Un certificado que nace vencido no habilita al socio. | `400 Bad Request` |
+| **Socio inexistente** | El `memberId` proporcionado no corresponde a ningún socio en la base de datos. | `404 Not Found` |
+| **Error de infraestructura** | Falla de la conexión con la base de datos, o fallo durante la transacción atómica (rollback automático). | `500 Internal Server Error` |
 
 
 ## 5. Observaciones Adicionales
