@@ -109,11 +109,28 @@ El único campo modificable a través de este caso de uso es `isValidated`.
 ## 5. Observaciones Adicionales
 
 ### 5.1. Validaciones de datos
-Se utilizarán librerías como `zod` para validar que los datos de entrada en el DTO cumplan con los formatos esperados, asegurando que `expiry_date` sea un string con formato ISO válido y `is_validated` sea un booleano.
+Se utilizarán librerías como `zod` para validar que los datos de entrada cumplan con los formatos esperados, asegurando `isValidated` sea un booleano, que el `id` sea un UUID válido y que el body no contenga campos adicionales no permitidos.
 
-### 5.2. Consideraciones de negocio
-- El campo `member_id` y `doctor_license` deben permanecer inmutables tras la creación para mantener la trazabilidad del certificado original.
-- Al actualizar la fecha de vencimiento, el sistema no debe alterar automáticamente el estado de validación a menos que se especifique explícitamente en el request.
+### 5.2. Repetición de la misma operación
+Si el certificado ya está en el estado solicitado (validar un certificado que ya tenía `isValidated = true`), el sistema acepta la operación y responde con éxito, sin generar cambios reales en la base. 
 
-### 5.3. Consideraciones de seguridad
-- Los endpoints de modificación deben estar restringidos exclusivamente a usuarios con rol administrativo autenticados en el sistema.
+### 5.3. Inmutabilidad de los demás campos
+Los campos `memberId`, `issueDate`, `expiryDate` y `doctorLicense` son inmutables a través de esta operación. Si se necesita corregir alguno de estos datos por un error de carga, el flujo correcto es eliminar lógicamente el certificado erróneo (TDD de Baja) y crear uno nuevo con los datos correctos (TDD de Alta).
+
+
+## 6. Componentes de Arquitectura Hexagonal
+
+*   **Domain**: entidad `MedicalCertificate`, regla de inmutabilidad de campos distintos a `isValidated`, puerto `MedicalCertificateRepository`.
+*   **Application**: caso de uso `UpdateMedicalCertificate`, mapeo de entidad a DTO de respuesta.
+*   **Infrastructure**: `MedicalCertificateController` (endpoint `PATCH /api/v1/medical-certificates/:id`), `PrismaMedicalCertificateRepository` (implementación de `findById` y `updateValidationStatus`), schemas de validación con `zod`.
+
+
+## 7. Plan de Implementación
+
+1.  Definir `UpdateMedicalCertificateDto` en `@alentapp/shared`.
+2.  Agregar la firma del método `updateValidationStatus` (y `findById` si no existe) al puerto `MedicalCertificateRepository` en la capa de Domain.
+3.  Implementar `updateValidationStatus` y `findById` en `PrismaMedicalCertificateRepository` en Infrastructure.
+4.  Implementar el caso de uso `UpdateMedicalCertificate` en Application, inyectando el repositorio de certificados.
+5.  Definir los schemas de validación con `zod` para `UpdateMedicalCertificateDto`, incluyendo el rechazo de campos no permitidos.
+6.  Registrar el endpoint `PATCH /api/v1/medical-certificates/:id` en el controlador de Fastify.
+7.  Escribir tests unitarios del caso de uso (con mock del repositorio) y tests de integración del repositorio.
