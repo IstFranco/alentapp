@@ -34,14 +34,19 @@ Permitir a los administradores registrar nuevos certificados médicos presentado
 ## 2. Diseño Técnico
 
 ### 2.1. Modelo de Dominio
-Se definirá la entidad **MedicalCertificate** con las siguientes propiedades y restricciones:
+Se definirá la entidad **MedicalCertificate** que representa un cerificado médico presentado por un socio.
 
-*   **id**: identificador único universal (UUID) generado por el sistema.
-*   **issue_date**: fecha de emisión del certificado.
-*   **expiry_date**: fecha de vencimiento. Debe ser posterior a la fecha de emisión.
-*   **doctor_license**: cadena de texto que representa la matrícula del profesional.
-*   **is_validated**: booleano. Indica si el administrativo aprobó el documento. Por defecto es `false`.
-*   **member_id**: UUID del socio asociado al certificado.
+*   **id**: `string`. Identificador único universal (UUID) generado por el sistema.
+*   **memberId**: `string`. UUID del socio asociado al certificado.
+*   **issueDate**: `Date`. Fecha de emisión del certificado.
+*   **expiryDate**: `Date`. Fecha de vencimiento. Debe ser posterior a `issueDate`.
+*   **doctorLicense**: `string`. Matrícula del profesional. No puede estar vacía.
+*   **isValidated**: `boolean`. Indica si el administrativo aprobó el documento. Por defecto es `false`.
+*   **deletedAt**: `Date | null`. Marca de baja lógica. `null` indica que el registro está activo.
+
+**Restricciones de dominio:**
+*   Solo puede existir un certificado con `isValidated = true` y `deletedAt = null` por cada socio.
+*   `expiryDate` debe ser estrictamente posterior a `issueDate`.
 
 ### 2.2. Contrato de API (Shared DTOs)
 
@@ -51,10 +56,10 @@ Se definirá la entidad **MedicalCertificate** con las siguientes propiedades y 
 **Request Body** (`CreateMedicalCertificateDto`):
 ```typescript
 {
-    member_id: string;      // ID del socio
-    issue_date: string;     
-    expiry_date: string;    
-    doctor_license: string; // Matrícula médica
+    memberId: string;      // UUID del socio
+    issueDate: string;     
+    expiryDate: string;    
+    doctorLicense: string; // Matrícula médica
 }
 ```
 
@@ -63,13 +68,14 @@ Se definirá la entidad **MedicalCertificate** con las siguientes propiedades y 
 ```ts
 {
     id: string;
-    member_id: string;
-    issue_date: string;
-    expiry_date: string;
-    doctor_license: string;
-    is_validated: boolean;  // Se inicializa en false
+    memberId: string;
+    issueDate: string;
+    expiryDate: string;
+    doctorLicense: string;
+    isValidated: boolean;  // Se inicializa en false
 }
 ```
+> **Nota**: El campo `deletedAt` no se expone en la respuesta porque es un detalle interno de persistencia y no forma parte del documento de negocio.
 
 ## 3. Arquitectura y Flujo
 
