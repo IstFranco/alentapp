@@ -123,11 +123,32 @@ Puerto **`MedicalCertificateRepository`**. Para este caso de uso, los métodos r
 ## 5. Observaciones Adicionales
 
 ### 5.1. Validaciones de datos
-Se utilizarán librerías como `zod` para validar que los strings de las fechas sigan el formato ISO y que la matrícula médica no sea una cadena vacía.
+Se utilizarán librerías como `zod` para validar que los strings de las fechas sigan el formato ISO, que la matrícula médica no sea una cadena vacía, y que el memberId este en formato UUID válido.
 
-### 5.2. Consideraciones de negocio
-- Al momento de la creación exitosa, el sistema debe garantizar de forma atómica que cualquier otro certificado del socio pase a un estado histórico.
-- El campo `is_validated` siempre debe inicializarse en `false`, requiriendo una acción posterior del administrativo para su aprobación definitiva.
+### 5.2. Atomicidad de la operación
+La invalidación de los certificados anteriores y la creación del nuevo deben ocurrir dentro de una misma transacción de base de datos. Si la transacción falla por cualquier motivo, el rollback automático asegura que la base de datos vuelva a su estado previo, manteniendo la integridad de los datos.
 
-### 5.3. Consideraciones de seguridad
-- El endpoint de creación debe estar protegido y ser accesible únicamente por usuarios con el rol de administrativo.
+### 5.3. Inicialización del campo `isValidated`
+El campo `isValidated` se inicializa en `false` al crear un certificado nuevo. Esto refleja que la carga del documento y su validación administrativa son dos momentos distintos del proceso: primero el administrador registra el certificado físico recibido, y luego lo aprueba mediante la operación documentada en el TDD de Modificación.
+
+### 5.4. Manejo de fechas
+A nivel de transporte (DTO), las fechas viajan como strings en formato ISO 8601. A nivel de dominio y persistencia, se trabajan como objetos `Date`. La conversión entre ambas representaciones se realiza en la capa de aplicación, durante el mapeo entre DTO y entidad.
+
+
+## 6. Componentes de Arquitectura Hexagonal
+
+*   **Domain**: entidad `MedicalCertificate`, regla de negocio de un único certificado activo por socio, puerto `MedicalCertificateRepository`.
+*   **Application**: caso de uso `CreateMedicalCertificate`, mapeo entre DTO y entidad, consumo del puerto `MemberRepository` (módulo Member).
+*   **Infrastructure**: `MedicalCertificateController` (endpoint `POST /api/v1/medical-certificates`), `PrismaMedicalCertificateRepository` (implementación con `prisma.$transaction`), schemas de validación con `zod`.
+
+
+## 7. Plan de Implementación
+
+1.  Definir `CreateMedicalCertificateDto` y `MedicalCertificateDto` en `@alentapp/shared`.
+2.  Agregar el modelo `MedicalCertificate` al `schema.prisma` y generar la migración.
+3.  Implementar la entidad `MedicalCertificate` y el puerto `MedicalCertificateRepository` en la capa de Domain.
+4.  Implementar `PrismaMedicalCertificateRepository` en Infrastructure usando `prisma.$transaction()`.
+5.  Implementar el caso de uso `CreateMedicalCertificate` en Application, inyectando los repositorios necesarios.
+6.  Definir los schemas de validación con `zod` para `CreateMedicalCertificateDto`.
+7.  Registrar el endpoint `POST /api/v1/medical-certificates` en el controlador de Fastify.
+8.  Escribir tests unitarios del caso de uso y tests de integración del repositorio.
