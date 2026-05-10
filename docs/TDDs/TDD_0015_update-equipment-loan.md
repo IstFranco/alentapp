@@ -28,7 +28,7 @@ Permitir registrar la devolución de material deportivo prestado, actualizando e
 
 #### Historia de Usuario 2: Devolución con Material Dañado
 - **Como** administrativo, **quiero** poder marcar un préstamo como "Damaged" al devolverlo, **para** llevar control del estado del equipamiento.
-- **Escenario de éxito**: Al registrar una devolución con estado "Damaged", el sistema actualiza el préstamo y permite agregar notas sobre el daño.
+- **Escenario de éxito**: Al registrar una devolución con estado "Damaged", el sistema actualiza el préstamo y se debe agregar notas sobre el daño.
 - **Escenario de fallo**: Se intenta marcar como "Damaged" sin proporcionar notas explicativas; el sistema retorna error 400 Bad Request.
 
 ### 1.4. Criterios Generales
@@ -82,7 +82,7 @@ Se utilizará la entidad **EquipmentLoan** con las siguientes restricciones:
   loanDate: string;
   returnDate: string;    //fecha actaul
   memberId: string;
-  notes?: string;
+  notes?: string; //No es un campo obligatorio porque si el estado es Returned no precisa nota.
 }
 ```
 

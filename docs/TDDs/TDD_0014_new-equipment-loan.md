@@ -24,7 +24,8 @@ Permitir el registro de nuevos préstamos de material deportivo a socios del clu
 #### Historia de Usuario 1: Alta Exitosa
 - **Como** administrativo, **quiero** registrar un préstamo de equipamiento a un socio habilitado, **para** tener control del inventario.
 - **Escenario de éxito**: Un socio de categoría "Senior" solicita una raqueta; el sistema registra el préstamo con estado "Loaned", asigna un ID único y retorna código 201 Created.
-- **Escenario de fallo**: El sistema no puede conectarse a la base de datos; retorna error 500 Internal Server Error.
+- **Escenario de fallo**: El administrativo cargo un idInvalido de socio o equipamiento, devuelve un bad request.
+- **Escenario de fallo**: El administrativo carga un itemName muy corto o vacio, devuelve un bad request.
 
 #### Historia de Usuario 2: Restricción por Categoría (Regla de Negocio Crítica)
 - **Como** administrativo, **quiero** que el sistema rechace automáticamente préstamos a socios "Cadet", **para** cumplir con la política del club.
@@ -122,7 +123,6 @@ model EquipmentLoan {
 ```typescript
 export interface EquipmentLoanRepository {
   create(loan: EquipmentLoan): Promise<EquipmentLoan>;
-  findById(id: string): Promise<EquipmentLoan | null>;
 }
 ```
 
@@ -143,7 +143,7 @@ export interface MemberRepository {
 **Flujo paso a paso:**
 
 1. **Validar datos de entrada:**
-   - Comprobar que `itemName` no esté vacío (mínimo 1 carácter)
+   - Comprobar que `itemName` no esté vacío (mínimo 3 carácter)
    - Comprobar que `memberId` sea un UUID válido
 
 2. **Verificar existencia del socio:**
@@ -187,6 +187,7 @@ export interface MemberRepository {
 | **Socio categoría Cadet** | Categoría "Cadet" tiene prohibido solicitar material (regla de negocio). | `403 Forbidden` |
 | **Socio inexistente** | El `memberId` proporcionado no existe en la base de datos. | `404 Not Found` |
 | **itemName vacío** | El campo `itemName` es requerido y no puede estar vacío. | `400 Bad Request` |
+| **itemName corto** | El campo `itemName` debe contener al menos 3 caracteres. | `400 Bad Request` |
 | **memberId vacío** | El campo `memberId` es requerido. | `400 Bad Request` |
 | **memberId formato inválido** | El `memberId` debe ser un UUID válido. | `400 Bad Request` |
 | **Error de base de datos** | Falla de conexión con Postgres o error al insertar. | `500 Internal Server Error` |

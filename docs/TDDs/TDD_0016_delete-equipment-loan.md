@@ -25,12 +25,7 @@ Permitir la cancelación de préstamos registrados erróneamente o que necesitan
 - **Como** administrativo, **quiero** cancelar un préstamo que fue registrado por error, **para** mantener limpio el registro de préstamos activos sin perder la trazabilidad.
 - **Escenario de éxito**: Al cancelar un préstamo con estado "Loaned", el sistema cambia el estado a "Canceled", registra la fecha de cancelación y retorna código 200 OK.
 - **Escenario de fallo**: El sistema no puede conectarse a la base de datos; retorna error 500 Internal Server Error.
-
-
-#### Historia de Usuario 2: Preservación del Registro
-- **Como** administrador del sistema, **quiero** que los préstamos cancelados permanezcan en la base de datos, **para** mantener auditoría completa.
-- **Escenario de éxito**: El préstamo cancelado permanece en la base de datos con estado "Canceled" y puede ser consultado en el historial.
-- **Escenario de fallo**: No aplica - nunca se elimina físicamente.
+- **Escenario de fallo**: Al cancelar un prestamo con estado "Returned" o "Canceled" el sistema retorna un error 409 Conflict.
 
 ### 1.4. Criterios Generales
 
@@ -219,7 +214,7 @@ export interface EquipmentLoanRepository {
 
 - **Domain**: Entidad `EquipmentLoan` y reglas de negocio para la eliminación lógica: restricción de anulación para préstamos ya procesados (`Returned` o `Damaged`), gestión del flag de visibilidad `isActive` y registro mandatorio de la fecha de cancelación.
 
-- **Application**: Caso de uso `DeleteEquipmentLoanUseCase`, responsable de validar las precondiciones de integridad (verificar que el préstamo siga en estado `Loaned`) y orquestar la actualización de los atributos de baja lógica sin invocar métodos de borrado físico.
+- **Application**: Caso de uso `CancelEquipmentLoanUseCase`, responsable de validar las precondiciones de integridad (verificar que el préstamo siga en estado `Loaned`) y orquestar la actualización de los atributos de baja lógica sin invocar métodos de borrado físico.
 
 - **Infrastructure**: Controlador HTTP para `PATCH /api/v1/equipment-loans/{id}/cancel` en Fastify con validación de parámetros vía `zod`, y repositorio implementado con Prisma que asegura la persistencia de los estados históricos y aplica filtros de exclusión por `isActive` en las consultas operativas.
 
@@ -229,6 +224,6 @@ export interface EquipmentLoanRepository {
 
 1. Actualizar el modelo `EquipmentLoan` en el esquema de Prisma para incluir los campos `isActive` (boolean) y `canceledDate` (DateTime?).
 2. Implementar en la entidad `EquipmentLoan` las validaciones necesarias para impedir la transición a `Canceled` si el préstamo ya posee una fecha de devolución registrada.
-3. Desarrollar `DeleteEquipmentLoanUseCase` asegurando que la operación de "borrado" sea en realidad una actualización parcial de los campos de visibilidad y estado.
+3. Desarrollar `CancelEquipmentLoanUseCase` asegurando que la operación de "borrado" sea en realidad una actualización parcial de los campos de visibilidad y estado.
 4. Configurar la ruta `PATCH` integrando middlewares de autorización para restringir la acción a perfiles administrativos y validar el formato UUID del identificador.
 5. Realizar pruebas manuales con un cliente HTTP (Postman/Insomnia) para constatar que, tras la baja, el registro permanece en la base de datos pero deja de ser visible en los listados generales del sistema.
