@@ -10,7 +10,7 @@
 ## 1. Contexto de Negocio
 
 ### 1.1. Objetivo
-Permitir a los administradores registrar nuevos certificados médicos presentado por los socios, dejando asentadas la fecha de emisión, la fecha de vencimiento y la matrícula del profesional. Cada nuevo registro habilita al socio para la práctica deportiva e invalida automáticamente cualquier certificado anterior del mismo socio, garantizando que solo exista un único certificado vigente por persona.
+Permitir a los administradores registrar nuevos certificados médicos presentado por los socios, dejando asentadas la fecha de emisión, la fecha de vencimiento y la matrícula del profesional. Cada nuevo registro habilita al socio para la práctica deportiva. Como consecuencia de mantener la regla de un único certificado vigente por socio, el sistema invalida automáticamente los certificados anteriores activos del mismo socio al registrar uno nuevo.
 
 ### 1.2. User Persona
 *   **Administrativo del Club**: Registrar de forma rápida y confiable los certificados médicos físicos que presentan los socios, manteniendo un único certificado vigente por socio. 
