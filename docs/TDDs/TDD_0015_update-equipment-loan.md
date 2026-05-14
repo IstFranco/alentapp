@@ -1,6 +1,6 @@
-# TDD-0002: Devolución de Préstamo de Equipamiento (Update EquipmentLoan)
+# TDD-0015: Devolución de Préstamo de Equipamiento (Update EquipmentLoan)
 
-| identificación | 0002 |
+| identificación | 0015 |
 |---------------|---|
 | estado        | Propuesto |
 | autor         | Franco Oyhenart |
@@ -28,13 +28,17 @@ Permitir registrar la devolución de material deportivo prestado, actualizando e
 
 #### Historia de Usuario 2: Devolución con Material Dañado
 - **Como** administrativo, **quiero** poder marcar un préstamo como "Damaged" al devolverlo, **para** llevar control del estado del equipamiento.
-- **Escenario de éxito**: Al registrar una devolución con estado "Damaged", el sistema actualiza el préstamo y permite agregar notas sobre el daño.
+- **Escenario de éxito**: Al registrar una devolución con estado "Damaged", el sistema actualiza el préstamo y se debe agregar notas sobre el daño.
 - **Escenario de fallo**: Se intenta marcar como "Damaged" sin proporcionar notas explicativas; el sistema retorna error 400 Bad Request.
 
-#### Historia de Usuario 3: Validación de Préstamo Ya Devuelto
-- **Como** sistema, **quiero** evitar devolver dos veces el mismo préstamo, **para** mantener la integridad de los datos.
-- **Escenario de éxito**: El préstamo tiene estado "Loaned" y se procesa correctamente.
-- **Escenario de fallo**: Se intenta devolver un préstamo que ya tiene estado "Returned"; el sistema retorna error 409 Conflict: "Este préstamo ya fue devuelto anteriormente".
+### 1.4. Criterios Generales
+
+1. Solo los registros con estado `Loaned` son elegibles para la actualización de devolución.
+2. El cambio de estado y la grabación de `returnDate` deben ejecutarse en una única transacción de base de datos.
+3. No se permite la modificación de los campos `memberId`, `loanDate` ni `itemName` durante el proceso de devolución.
+4. El campo `notes` es obligatorio y debe tener una longitud mínima (ej. 10 caracteres) si el estado es `Damaged`.
+5. La fecha de devolución (`returnDate`) debe ser generada por el servidor, ignorando cualquier fecha enviada por el cliente para evitar fraude.
+6. Una vez que un préstamo alcanza el estado `Returned` o `Damaged`, no puede volver a estado `Loaned` bajo ninguna circunstancia.
 
 ---
 
@@ -42,19 +46,17 @@ Permitir registrar la devolución de material deportivo prestado, actualizando e
 
 ### 2.1. Modelo de Dominio (Entidad)
 
-**Ubicación:** `@alentapp/api/src/domain/entities/EquipmentLoan.ts`
+Se utilizará la entidad **EquipmentLoan** con las siguientes restricciones:
 
-```typescript
-export interface EquipmentLoan {
-  id: string;
-  itemName: string;
-  status: 'Loaned' | 'Returned' | 'Damaged';
-  loanDate: Date;
-  returnDate?: Date;
-  memberId: string;
-  notes?: string;
-}
-```
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único del préstamo. |
+| `itemName` | string | Nombre del material. Inmutable en este flujo. |
+| `status` | enum | Estados: `Loaned`, `Returned`, `Damaged`. |
+| `loanDate` | DateTime | Fecha de inicio. Inmutable. |
+| `returnDate` | DateTime / NULL | Fecha de devolución. Generada por el sistema al actualizar. |
+| `memberId` | UUID | ID del socio. Inmutable. |
+| `notes` | string / NULL | Obligatorio si `status` es `Damaged`. |
 
 ### 2.2. Contrato de API (Shared DTOs)
 
@@ -80,7 +82,7 @@ export interface EquipmentLoan {
   loanDate: string;
   returnDate: string;    //fecha actaul
   memberId: string;
-  notes?: string;
+  notes?: string; //No es un campo obligatorio porque si el estado es Returned no precisa nota.
 }
 ```
 
@@ -198,3 +200,27 @@ export interface EquipmentLoanRepository {
   "code": "NOTES_REQUIRED_FOR_DAMAGED"
 }
 ```
+
+---
+
+## 5. Observaciones adicionales
+
+---
+
+## 6. Componentes de Arquitectura Hexagonal
+
+- **Domain**: Entidad `EquipmentLoan` y reglas de negocio asociadas a la transición de estados: validación obligatoria del estado previo `Loaned`, restricción de inmutabilidad para campos de origen (`memberId`, `loanDate`) y lógica de obligatoriedad del campo `notes` ante daños detectados[cite: 1].
+
+- **Application**: Caso de uso `ReturnEquipmentLoanUseCase`, encargado de orquestar la validación de las precondiciones de negocio, asegurar la integridad de los datos de entrada y coordinar la persistencia atómica a través del puerto del repositorio[cite: 1].
+
+- **Infrastructure**: Controlador HTTP para `PATCH /api/v1/equipment-loans/{id}/return` implementado en Fastify con validación de esquema mediante `zod`, y adaptador de persistencia `EquipmentLoanRepository` desarrollado con Prisma para la interacción con PostgreSQL[cite: 1].
+
+---
+
+## 7. Plan de Implementación
+
+1. Definir las reglas de validación y transición de estados dentro de la entidad `EquipmentLoan` en la capa de dominio.
+2. Implementar `ReturnEquipmentLoanUseCase` aplicando TDD para cubrir escenarios de éxito (devolución normal) y de fallo (falta de notas en material dañado o estado inválido).
+3. Extender el repositorio en la capa de infraestructura para incluir el método `update`, asegurando que la operación sea atómica.
+4. Registrar el endpoint `PATCH` en el servidor Fastify, integrando el esquema de validación `zod` y los middlewares de seguridad para el rol administrativo.
+5. Verificar el flujo completo utilizando un cliente HTTP, validando que el sistema realice correctamente el `rollback` ante errores y que bloquee intentos de doble devolución.

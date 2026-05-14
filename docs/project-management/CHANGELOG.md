@@ -40,14 +40,14 @@ ENTIDAD: SPORTS
 
 ---
 
-## [1.0.0] - 2026-05-02
+## [1.1.0] - 2026-05-02
 
 ### Changed
 - Se movio "SPORT-01.md" de ./docs a ./docs/TDDs
 
 ---
 
-## [1.0.0] - 2026-05-01
+## [1.1.0] - 2026-05-01
 
 ### Added
 - Creación inicial del TDD de Sport "SPORT-01.md"
@@ -56,7 +56,7 @@ ENTIDAD: SPORTS
 
 ENTIDAD: LOCKERS
 
-## [1.2.0] - 2026-05-03
+## [1.1.0] - 2026-05-03
 
 ### Added
 - Se agregan TDD separados para Locker (TDD_0007_NEW_LOCKER, TDD_0008_DELETE_LOCKER, TDD_0009_UPDATE_LOCKER) en /TDDs.
@@ -76,14 +76,14 @@ ENTIDAD: LOCKERS
 
 ---
 
-## [1.0.0] - 2026-05-03
+## [1.1.0] - 2026-05-03
 ### Added
 - Se agregan TDD separados para EquipmentLoan (TDD_0001_new-equipment-loan, TDD_0002_update-equipment-loan, TDD_0003_delete-equipment-loan) en /docs/TDDs
-- TDD_0001: Alta de préstamo con validación de restricción por categoría
-- TDD_0002: Devolución de préstamo con estados Returned y Damaged
-- TDD_0003: Cancelación de préstamo (baja lógica)
 
 ### Removed
 - Se elimina equipment_loan.md de ./docs
 
 ---
+## [1.1.0] - 2026-05-10
+### Changed
+- Se modificaron las TDDs para la entidad EquipmentLoan(TDD_0014_new-equipment-loan, TDD_0015_update-equipment-loan, TDD_0016_delete-equipment-loan) en /docs/TDDs para cumplir revision.

@@ -1,6 +1,6 @@
-# TDD-0001: Alta de Préstamo de Equipamiento (Create EquipmentLoan)
+# TDD-0014: Alta de Préstamo de Equipamiento (Create EquipmentLoan)
 
-| identificación | 0001 |
+| identificación | 0004 |
 |---------------|---|
 | estado        | Propuesto |
 | autor         | Franco Oyhenart |
@@ -24,37 +24,40 @@ Permitir el registro de nuevos préstamos de material deportivo a socios del clu
 #### Historia de Usuario 1: Alta Exitosa
 - **Como** administrativo, **quiero** registrar un préstamo de equipamiento a un socio habilitado, **para** tener control del inventario.
 - **Escenario de éxito**: Un socio de categoría "Senior" solicita una raqueta; el sistema registra el préstamo con estado "Loaned", asigna un ID único y retorna código 201 Created.
-- **Escenario de fallo**: El sistema no puede conectarse a la base de datos; retorna error 500 Internal Server Error.
+- **Escenario de fallo**: El administrativo cargo un idInvalido de socio o equipamiento, devuelve un bad request.
+- **Escenario de fallo**: El administrativo carga un itemName muy corto o vacio, devuelve un bad request.
 
 #### Historia de Usuario 2: Restricción por Categoría (Regla de Negocio Crítica)
 - **Como** administrativo, **quiero** que el sistema rechace automáticamente préstamos a socios "Cadet", **para** cumplir con la política del club.
 - **Escenario de éxito**: El sistema valida correctamente que el socio es "Senior" o "Lifetime" y permite el registro.
 - **Escenario de fallo**: Un socio de categoría "Cadet" intenta solicitar material; el sistema rechaza con error 403 Forbidden: "Los socios de categoría Cadet no están autorizados para solicitar préstamos de equipamiento".
 
-#### Historia de Usuario 3: Validación de Datos
-- **Como** sistema, **quiero** validar que todos los datos obligatorios estén presentes, **para** mantener la integridad.
-- **Escenario de éxito**: Se envía una solicitud con todos los campos requeridos correctamente; el sistema procede.
-- **Escenario de fallo**: Se envía una solicitud sin itemName; retorna error 400 Bad Request: "El nombre del ítem es requerido".
+### 1.4. Criterios Generales
+
+1. Solo socios de categoría **Senior** o **Lifetime** están habilitados para solicitar préstamos.
+2. Todo préstamo nuevo se registra inicialmente con el estado **Loaned**.
+3. El campo `loanDate` se genera automáticamente con la fecha y hora del sistema al momento de la creación.
+4. Un préstamo no puede ser registrado si el `memberId` no corresponde a un socio activo en el sistema.
+5. Solo usuarios con rol **Administrativo** pueden registrar nuevos préstamos.
+6. El campo `itemName` debe tener una longitud mínima de 3 caracteres para evitar registros ambiguos.
 
 ---
 
 ## 2. Diseño Técnico (El "Cómo")
 
-### 2.1. Modelo de Dominio (Entidad)
+### 2.1. Modelo de Dominio
 
-**Ubicación:** `@alentapp/api/src/domain/entities/EquipmentLoan.ts`
+Se definirá la entidad **EquipmentLoan** con las siguientes propiedades y restricciones:
 
-```typescript
-export interface EquipmentLoan {
-  id: string;
-  itemName: string;
-  status: 'Loaned' | 'Returned' | 'Damaged';
-  loanDate: Date;
-  returnDate?: Date;
-  memberId: string;
-  notes?: string;
-}
-```
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | UUID | Identificador único universal generado por el sistema. |
+| `itemName` | string | Nombre o descripción del material prestado (mín. 3 caracteres). |
+| `status` | enum | Estado del préstamo. Valores: `Loaned`, `Returned`, `Damaged`. |
+| `loanDate` | DateTime | Fecha y hora en la que se realiza el préstamo. |
+| `returnDate` | DateTime / NULL | Fecha de devolución. Se inicializa en NULL. |
+| `memberId` | UUID | Identificador del socio que solicita el material. |
+| `notes` | string / NULL | Observaciones adicionales sobre el estado del material. |
 
 ### 2.2. Contrato de API (Shared DTOs)
 
@@ -120,7 +123,6 @@ model EquipmentLoan {
 ```typescript
 export interface EquipmentLoanRepository {
   create(loan: EquipmentLoan): Promise<EquipmentLoan>;
-  findById(id: string): Promise<EquipmentLoan | null>;
 }
 ```
 
@@ -141,7 +143,7 @@ export interface MemberRepository {
 **Flujo paso a paso:**
 
 1. **Validar datos de entrada:**
-   - Comprobar que `itemName` no esté vacío (mínimo 1 carácter)
+   - Comprobar que `itemName` no esté vacío (mínimo 3 carácter)
    - Comprobar que `memberId` sea un UUID válido
 
 2. **Verificar existencia del socio:**
@@ -185,6 +187,7 @@ export interface MemberRepository {
 | **Socio categoría Cadet** | Categoría "Cadet" tiene prohibido solicitar material (regla de negocio). | `403 Forbidden` |
 | **Socio inexistente** | El `memberId` proporcionado no existe en la base de datos. | `404 Not Found` |
 | **itemName vacío** | El campo `itemName` es requerido y no puede estar vacío. | `400 Bad Request` |
+| **itemName corto** | El campo `itemName` debe contener al menos 3 caracteres. | `400 Bad Request` |
 | **memberId vacío** | El campo `memberId` es requerido. | `400 Bad Request` |
 | **memberId formato inválido** | El `memberId` debe ser un UUID válido. | `400 Bad Request` |
 | **Error de base de datos** | Falla de conexión con Postgres o error al insertar. | `500 Internal Server Error` |
@@ -213,3 +216,27 @@ export interface MemberRepository {
   "code": "VALIDATION_ERROR"
 }
 ```
+
+---
+
+## 5. Observaciones adicionales
+
+---
+
+## 6. Componentes de Arquitectura Hexagonal
+
+**Domain**: Entidad `EquipmentLoan` y reglas de negocio: validación de categoría de socio (Senior/Lifetime), estado inicial obligatorio `Loaned`, y validación de atributos.
+
+**Application**: Caso de uso `CreateEquipmentLoanUseCase`, encargado de orquestar la validación de identidad, la aplicación de restricciones y la llamada al puerto de persistencia.
+
+**Infrastructure**: Controlador HTTP para `POST /api/v1/equipment-loans`, middleware de autenticación (Admin check) y repositorios implementados con Prisma.
+
+---
+
+## 7. Plan de Implementación
+
+1. Definir la entidad de dominio e interfaz `EquipmentLoanRepository`.
+2. Implementar `CreateEquipmentLoanUseCase` con las validaciones de negocio.
+3. Actualizar el esquema de Prisma y ejecutar la migración.
+4. Registrar la ruta en Fastify con validación de esquema y middleware de rol.
+5. Realizar pruebas de integración cubriendo escenarios de éxito y restricciones.
