@@ -14,8 +14,11 @@ export async function equipmentLoanRoutes(
     '/equipment-loans',
     {
       preHandler: [
-        requireAuth,
-        requireRole(['admin']),
+        //requireAuth,
+        //requireRole(['admin']),
+        
+        // DESCOMENTAR ESTAS LINEAS ASI SOLO EL ADMIN PUEDE DAR DE ALTA EQUIPMENT LOANS.
+
         validateSchema(createEquipmentLoanSchema)
       ]
     },
