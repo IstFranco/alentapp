@@ -25,3 +25,39 @@ export const createEquipmentLoanSchema = z.object({
 });
 
 export type CreateEquipmentLoanBody = z.infer<typeof createEquipmentLoanSchema>['body'];
+
+export const returnEquipmentLoanSchema = z.object({
+  params: z.object({
+    id: z
+      .string({
+        required_error: 'El ID del préstamo es requerido'
+      })
+      .uuid('El ID del préstamo debe ser un UUID válido')
+  }),
+  body: z.object({
+    status: z.enum(['Returned', 'Damaged'], {
+      required_error: 'El estado es requerido',
+      invalid_type_error: 'El estado debe ser "Returned" o "Damaged"'
+    }),
+    notes: z
+      .string()
+      .min(10, 'Las notas deben tener al menos 10 caracteres')
+      .max(1000, 'Las notas no pueden exceder 1000 caracteres')
+      .trim()
+      .optional()
+  }).refine(
+    (data) => {
+      if (data.status === 'Damaged') {
+        return data.notes !== undefined && data.notes.length >= 10;
+      }
+      return true;
+    },
+    {
+      message: 'Si el material está dañado, debe proporcionar notas explicativas',
+      path: ['notes']
+    }
+  )
+});
+
+export type ReturnEquipmentLoanParams = z.infer<typeof returnEquipmentLoanSchema>['params'];
+export type ReturnEquipmentLoanBody = z.infer<typeof returnEquipmentLoanSchema>['body'];

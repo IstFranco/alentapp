@@ -1,4 +1,5 @@
-import { LoanStatus, LoanStatusVO } from '../value-objects/LoanStatus';
+import { LoanStatus, LoanStatusVO } from '../value-objects/LoanStatus.js';
+import { InvalidStateTransitionError, MissingNotesError } from '../errors/EquipmentLoanErrors.js';
 
 export interface EquipmentLoanProps {
   id: string;
@@ -50,6 +51,47 @@ export class EquipmentLoan {
     return uuidRegex.test(id);
   }
 
+  returnEquipment(notes?: string): void {
+    this.validateCanBeReturned();
+    
+    this.props.status = LoanStatusVO.create(LoanStatus.RETURNED);
+    this.props.returnDate = new Date();
+    
+    if (notes) {
+      this.props.notes = notes;
+    }
+  }
+
+  damageEquipment(notes: string): void {
+    this.validateCanBeReturned();
+    
+    if (!notes || notes.trim().length < 10) {
+      throw new MissingNotesError();
+    }
+    
+    this.props.status = LoanStatusVO.create(LoanStatus.DAMAGED);
+    this.props.returnDate = new Date();
+    this.props.notes = notes.trim();
+  }
+
+  private validateCanBeReturned(): void {
+    if (this.props.status.isReturned()) {
+      throw new InvalidStateTransitionError('Returned');
+    }
+    
+    if (this.props.status.isDamaged()) {
+      throw new InvalidStateTransitionError('Damaged');
+    }
+    
+    if (this.props.status.isCanceled()) {
+      throw new InvalidStateTransitionError('Canceled');
+    }
+    
+    if (!this.props.isActive) {
+      throw new InvalidStateTransitionError('Inactive');
+    }
+  }
+
   // Getters
   get id(): string {
     return this.props.id;
@@ -95,7 +137,7 @@ export class EquipmentLoan {
     return this.props.updatedAt;
   }
 
-  // Métodos de negocio (preparados para futuras features)
+  // Métodos de consullta
   canBeReturned(): boolean {
     return this.props.status.isLoaned() && this.props.isActive;
   }

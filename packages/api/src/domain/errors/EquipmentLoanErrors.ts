@@ -32,3 +32,31 @@ export class InvalidMemberIdError extends EquipmentLoanError {
     this.name = 'InvalidMemberIdError';
   }
 }
+
+export class LoanNotFoundError extends EquipmentLoanError {
+  constructor(loanId: string) {
+    super(`El préstamo con ID ${loanId} no existe`);
+    this.name = 'LoanNotFoundError';
+  }
+}
+
+export class InvalidStateTransitionError extends EquipmentLoanError {
+  constructor(currentStatus: string) {
+    super(`Este préstamo ya fue devuelto anteriormente (estado actual: ${currentStatus})`);
+    this.name = 'InvalidStateTransitionError';
+  }
+}
+
+export class MissingNotesError extends EquipmentLoanError {
+  constructor() {
+    super('Si el material está dañado, debe proporcionar notas explicativas');
+    this.name = 'MissingNotesError';
+  }
+}
+
+export class InvalidStatusError extends EquipmentLoanError {
+  constructor(status: string) {
+    super(`El estado '${status}' no es válido para devolución. Use 'Returned' o 'Damaged'`);
+    this.name = 'InvalidStatusError';
+  }
+}

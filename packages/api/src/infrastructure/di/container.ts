@@ -1,9 +1,10 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../../generated/client/index.js';
-import { PrismaEquipmentLoanRepository } from '../repositories/PrismaEquipmentLoanRepository';
-import { PostgresMemberRepository } from '../PostgresMemberRepository';
-import { CreateEquipmentLoanUseCase } from '../../application/use-cases/CreateEquipmentLoanUseCase';
-import { EquipmentLoanController } from '../../delivery/controllers/EquipmentLoanController';
+import { PrismaEquipmentLoanRepository } from '../repositories/PrismaEquipmentLoanRepository.js';
+import { PostgresMemberRepository } from '../PostgresMemberRepository.js';
+import { CreateEquipmentLoanUseCase } from '../../application/use-cases/CreateEquipmentLoanUseCase.js';
+import { ReturnEquipmentLoanUseCase } from '../../application/use-cases/ReturnEquipmentLoanUseCase.js';
+import { EquipmentLoanController } from '../../delivery/controllers/EquipmentLoanController.js';
 
 export class DependencyContainer {
   private static instance: DependencyContainer;
@@ -34,8 +35,15 @@ export class DependencyContainer {
       equipmentLoanRepository,
       memberRepository
     );
+    
+    const returnEquipmentLoanUseCase = new ReturnEquipmentLoanUseCase(
+      equipmentLoanRepository
+    );
 
-    return new EquipmentLoanController(createEquipmentLoanUseCase);
+    return new EquipmentLoanController(
+      createEquipmentLoanUseCase,
+      returnEquipmentLoanUseCase
+    );
   }
 
   async disconnect(): Promise<void> {

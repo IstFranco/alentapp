@@ -7,8 +7,8 @@ import { GetMembersUseCase } from './application/GetMembersUseCase.js';
 import { UpdateMemberUseCase } from './application/UpdateMemberUseCase.js';
 import { DeleteMemberUseCase } from './application/DeleteMemberUseCase.js';
 import { MemberController } from './delivery/MemberController.js';
-import { equipmentLoanRoutes } from './delivery/routes/equipmentLoanRoutes';
-import { DependencyContainer } from './infrastructure/di/container';
+import { equipmentLoanRoutes } from './delivery/routes/equipmentLoanRoutes.js';
+import { DependencyContainer } from './infrastructure/di/container.js';
 
 export function buildApp() {
     const server = Fastify({
@@ -45,17 +45,15 @@ export function buildApp() {
         deleteMemberUseCase
     );
 
-//franco ---------
     const container = DependencyContainer.getInstance();
     const equipmentLoanController = container.getEquipmentLoanController();
 
     server.register(
-      async (instance) => {
-        await equipmentLoanRoutes(instance, equipmentLoanController);
-      },
-      { prefix: '/api/v1' }
+        async (instance) => {
+            await equipmentLoanRoutes(instance, equipmentLoanController);
+        },
+        { prefix: '/api/v1' }
     );
-//-------------
 
     server.get('/api/v1/socios', memberController.getAll.bind(memberController));
     server.post('/api/v1/socios', memberController.create.bind(memberController));

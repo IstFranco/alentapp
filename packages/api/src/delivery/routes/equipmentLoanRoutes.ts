@@ -1,9 +1,9 @@
 import { FastifyInstance } from 'fastify';
-import { EquipmentLoanController } from '../controllers/EquipmentLoanController';
-import { createEquipmentLoanSchema } from '../validators/EquipmentLoanValidators';
-import { validateSchema } from '../middlewares/validateSchema';
-import { requireAuth } from '../middlewares/requireAuth';
-import { requireRole } from '../middlewares/requireRole';
+import { EquipmentLoanController } from '../controllers/EquipmentLoanController.js';
+import { createEquipmentLoanSchema, returnEquipmentLoanSchema } from '../validators/EquipmentLoanValidators.js';
+import { validateSchema } from '../middlewares/validateSchema.js';
+import { requireAuth } from '../middlewares/requireAuth.js';
+import { requireRole } from '../middlewares/requireRole.js';
 
 export async function equipmentLoanRoutes(
   fastify: FastifyInstance,
@@ -23,5 +23,20 @@ export async function equipmentLoanRoutes(
       ]
     },
     (request, reply) => controller.create(request, reply)
+  );
+
+  fastify.patch(
+    '/equipment-loans/:id/return',
+    {
+      preHandler: [
+        //requireAuth,
+        //requireRole(['admin']),
+
+        // LO MISMO QUE ARRIBA. -------------------------
+
+        validateSchema(returnEquipmentLoanSchema)
+      ]
+    },
+    (request, reply) => controller.returnLoan(request, reply)
   );
 }
