@@ -60,3 +60,17 @@ export class InvalidStatusError extends EquipmentLoanError {
     this.name = 'InvalidStatusError';
   }
 }
+
+export class CannotCancelProcessedLoanError extends EquipmentLoanError {
+  constructor(status: string) {
+    super(`No se puede cancelar un préstamo que ya fue devuelto (estado actual: ${status})`);
+    this.name = 'CannotCancelProcessedLoanError';
+  }
+}
+
+export class AlreadyCanceledError extends EquipmentLoanError {
+  constructor() {
+    super('Este préstamo ya fue cancelado anteriormente');
+    this.name = 'AlreadyCanceledError';
+  }
+}
