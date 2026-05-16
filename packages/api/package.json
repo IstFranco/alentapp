@@ -9,6 +9,7 @@
         "coverage": "vitest run --coverage"
     },
     "dependencies": {
+        "@alentapp/shared": "*",
         "@fastify/cors": "^11.2.0",
         "@prisma/adapter-pg": "^7.8.0",
         "@prisma/client": "^7.7.0",
