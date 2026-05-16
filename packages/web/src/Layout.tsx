@@ -33,6 +33,20 @@ function Layout() {
                                 Miembros
                             </Text>
                         </RouterLink>
+
+                        {/* ¡Tu nueva sección agregada a la barra superior! */}
+                        <RouterLink to="/lockers">
+                            <Text 
+                                fontWeight="semibold" 
+                                fontSize="sm" 
+                                textTransform="uppercase" 
+                                letterSpacing="wider"
+                                color="fg.muted"
+                                _hover={{ color: "blue.500", textDecoration: "none" }}
+                            >
+                                Casilleros
+                            </Text>
+                        </RouterLink>
                     </HStack>
                 </Flex>
             </Box>

@@ -5,4 +5,5 @@ export interface LockerRepository {
   findByNumber(number: number): Promise<Locker | null>;
   findById(id: string): Promise<Locker | null>;
   deleteById(id: string): Promise<void>;
+  update(id: string, data: Partial<Omit<Locker, 'id' | 'number'>>): Promise<Locker>;
 }
