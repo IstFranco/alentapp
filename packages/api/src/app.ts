@@ -2,6 +2,9 @@ import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import { PostgresMemberRepository } from './infrastructure/PostgresMemberRepository.js';
 import { MemberValidator } from './domain/services/MemberValidator.js';
+import { LockerController } from './delivery/LockerController';
+import { PrismaLockerRepository } from './infrastructure/PrismaLockerRepository.js';
+import { NewLockerUseCase } from './application/NewLockerUseCase.js';
 import { CreateMemberUseCase } from './application/NewMemberUseCase.js';
 import { GetMembersUseCase } from './application/GetMembersUseCase.js';
 import { UpdateMemberUseCase } from './application/UpdateMemberUseCase.js';
@@ -35,6 +38,8 @@ export function buildApp() {
     const getMembersUseCase = new GetMembersUseCase(memberRepo);
     const updateMemberUseCase = new UpdateMemberUseCase(memberRepo, memberValidator);
     const deleteMemberUseCase = new DeleteMemberUseCase(memberRepo);
+    const lockerRepo = new PrismaLockerRepository();
+    const newLockerUseCase = new NewLockerUseCase(lockerRepo);
 
     const memberController = new MemberController(
         createMemberUseCase, 
@@ -47,6 +52,14 @@ export function buildApp() {
     server.post('/api/v1/socios', memberController.create.bind(memberController));
     server.put('/api/v1/socios/:id', memberController.update.bind(memberController));
     server.delete('/api/v1/socios/:id', memberController.delete.bind(memberController));
+    server.post('/api/v1/lockers', async (request, reply) => {
+    const body = request.body as any;
+    const result = await newLockerUseCase.execute({
+    number: Number(body.number),
+    location: body.location
+  });
+  return reply.status(201).send(result);
+});
 
     server.get('/', async (req, rep) => {
         rep.status(200).send({ msg: 'asd' })
