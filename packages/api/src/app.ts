@@ -7,6 +7,11 @@ import { GetMembersUseCase } from './application/GetMembersUseCase.js';
 import { UpdateMemberUseCase } from './application/UpdateMemberUseCase.js';
 import { DeleteMemberUseCase } from './application/DeleteMemberUseCase.js';
 import { MemberController } from './delivery/MemberController.js';
+import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresMedicalCertificateRepository.js';
+import { MedicalCertificateValidator } from './domain/services/MedicalCertificateValidator.js';
+import { CreateMedicalCertificateUseCase } from './application/NewMedicalCertificateUseCase.js';
+import { GetMedicalCertificatesUseCase } from './application/GetMedicalCertificatesUseCase.js';
+import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
 
 export function buildApp() {
     const server = Fastify({
@@ -43,10 +48,24 @@ export function buildApp() {
         deleteMemberUseCase
     );
 
+    const medicalCertificateRepo = new PostgresMedicalCertificateRepository();
+    const medicalCertificateValidator = new MedicalCertificateValidator(memberRepo);
+
+    const createMedicalCertificateUseCase = new CreateMedicalCertificateUseCase(medicalCertificateRepo, medicalCertificateValidator);
+    const getMedicalCertificatesUseCase = new GetMedicalCertificatesUseCase(medicalCertificateRepo);
+
+    const medicalCertificateController = new MedicalCertificateController(
+        createMedicalCertificateUseCase,
+        getMedicalCertificatesUseCase,
+    );
+
     server.get('/api/v1/socios', memberController.getAll.bind(memberController));
     server.post('/api/v1/socios', memberController.create.bind(memberController));
     server.put('/api/v1/socios/:id', memberController.update.bind(memberController));
     server.delete('/api/v1/socios/:id', memberController.delete.bind(memberController));
+
+    server.get('/api/v1/medical-certificates', medicalCertificateController.getAll.bind(medicalCertificateController));
+    server.post('/api/v1/medical-certificates', medicalCertificateController.create.bind(medicalCertificateController));
 
     server.get('/', async (req, rep) => {
         rep.status(200).send({ msg: 'asd' })
