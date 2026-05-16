@@ -3,9 +3,9 @@
 | estado        | Propuesto |
 | autor         | Esteban Trillo |
 | fecha         | 2026-05-03 |
-| título        | Registro de Nuevos Deporte |
+| título        | Registro de Nuevo Deporte |
 
-# TDD-0010: Registro de Nuevos Deporte
+# TDD-0010: Registro de Nuevo Deporte
 
 ## 1. Contexto de Negocio
 
@@ -13,16 +13,24 @@
 
 Permitir a los administradores crear nuevos deportes en el sistema del Club Alentapp, definiendo sus atributos principales como nombre, descripcion, cupo maximo, precio adicional y condiciones de acceso
 
-### 1.2. User Personas
+### 1.2. User Persona
 
-- **Administrativo**: yo como administrativo deportivo quiero crear nuevos deportes con su cupo maximo, precio adicional y descripcion
+- **Administrativo**: Este usuario es responsable de mantener actualizada la oferta deportiva del club. Al interactuar con esta funcionalidad, espera poder registrar nuevos deportes de forma rápida y sin errores. Busca definir el nombre, cupo máximo y precio adicional de cada disciplina, sin permitirse ingresar datos inválidos ni duplicar deportes ya existentes
 
-### 1.3. Criterios de Aceptación
+### 1.3. Criterios de Aceptación (User Stories)
 
 #### Historia de Usuario 1: Crear Deporte
 - **Como** administrativo, **quiero** crear un nuevo deporte con nombre, descripcion y cupo maximo, **para** para ampliar la oferta deportiva del club
+
 - **Escenario de éxito**: si el administrativo completa de manera correcta los campos requeridos, el sistema debera responder creando el nuevo deporte y notificar la exitosa creacion
 - **Escenario de fallo**: si el administrativo ingresa una capacidad maxima de menor o igual a cero, el sistema debera responder con una advertencia de rango invalido invalido y no permitir el alta del nuevo deporte
+
+### 1.4. Criterios de Aceptación Generales
+
+- El sistema debe validar que el `name` no esté vacío y sea único.
+- El sistema debe validar que el `max_capacity` sea un número entero mayor a cero.
+- Al finalizar, el sistema debe retornar los datos del deporte creado con un código `201 Created`.
+- El deporte debe quedar guardado con el campo `name` inmutable luego de su creación.
 
 ## 2. Diseño Técnico
 
@@ -48,7 +56,7 @@ Se definirá la entidad **Sport** con las siguientes propiedades y restricciones
     name: string;                              //imutable luego de la cracion
     description: string;                       //editable
     max_capacity: int;                         // debe ser mayor a cero
-    additional_price: number;
+    additional_price: number;                  // por defecto es cero
     requires_medical_certificate: boolean;
 }
 ```
@@ -62,21 +70,6 @@ Se definirá la entidad **Sport** con las siguientes propiedades y restricciones
     max_capacity: int;                         // debe ser mayor a cero
     additional_price: number;
     requires_medical_certificate: boolean;
-}
-```
-
-### 2.3. Esquema de Persistencia (Prisma)
-
-```prisma
-model Sport{
-    id          String    @id @default(uuid())
-    name        String
-    description String
-    max_capacity number
-    additional_price number @default(0)
-    requires_medical_cerificate boolean @default(flase)
-
-    enrollments   Enrollment []
 }
 ```
 
@@ -132,3 +125,20 @@ Se pueden utilizar librerías como `zod` para validar los datos de entrada en lo
 
 ### 5.3. Consideraciones de seguridad
 - Los endpoints de creación deberían estar restringidos a usuarios con rol administrativo
+
+## 6. Componentes de Arquitectura Hexagonal
+
+1. **Puerto:** `SportRepository` (Interface en el Dominio).
+2. **Caso de Uso:** `CreateSport` (Valida que `max_capacity` sea mayor a cero y que no exista un deporte con el mismo `name` antes de llamar al repositorio).
+3. **Adaptador de Salida:** Implementación de persistencia en base de datos via Prisma.
+4. **Adaptador de Entrada:** `SportController` (Ruta HTTP `POST /api/v1/sports`).
+
+## 7. Plan de Implementación
+
+1. Definir el esquema `Sport` en Prisma y correr la migración correspondiente.
+2. Crear los tipos y DTOs compartidos (`CreateSportDto`, `SportResponseDto`) en el paquete `@alentapp/shared`.
+3. Definir el puerto `SportRepository` como interface en el Dominio.
+4. Implementar el adaptador de salida `SportPrismaRepository` con el método `create`.
+5. Implementar el Caso de Uso `CreateSport` con las validaciones de negocio (cupo > 0, nombre único).
+6. Crear el `SportController` con la ruta `POST /api/v1/sports` y conectar con el Caso de Uso.
+7. Conectar el formulario en el frontend (React) con el endpoint del backend.
