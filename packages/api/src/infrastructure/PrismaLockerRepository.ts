@@ -1,6 +1,15 @@
-import { prisma } from './database'; 
-import { Locker } from '../domain/Locker';
-import { LockerRepository } from '../domain/LockerRepository';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../generated/client/client.js';
+import { Locker } from '../domain/Locker.js';
+import { LockerRepository } from '../domain/LockerRepository.js';
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is not set');
+}
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg(process.env.DATABASE_URL),
+});
 
 export class PrismaLockerRepository implements LockerRepository {
   
