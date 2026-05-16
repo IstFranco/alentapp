@@ -70,3 +70,21 @@ export class PrismaLockerRepository implements LockerRepository {
     });
   }
 }
+  async update(id: string, data: Partial<Omit<Locker, 'id' | 'number'>>): Promise<Locker> {
+    const updated = await this.prisma.locker.update({
+      where: { id },
+      data: {
+        location: data.location,
+        status: data.status,
+        member_id: data.member_id,
+      },
+    });
+
+    return new Locker(
+      updated.id,
+      updated.number,
+      updated.location,
+      updated.status as any,
+      updated.member_id
+    );
+  }
