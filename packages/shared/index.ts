@@ -51,3 +51,7 @@ export interface CreateMedicalCertificateRequest {
     expiryDate: string; // ISO Date String (YYYY-MM-DD)
     doctorLicense: string;
 }
+
+export interface UpdateMedicalCertificateRequest {
+    isValidated: boolean;
+}
