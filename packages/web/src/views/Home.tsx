@@ -32,6 +32,14 @@ export function HomeView() {
           icon={LuUsers}
         />
 
+        <SectionCard 
+          title="Préstamos"
+          description="Controlá el préstamo de material deportivo, devoluciones en buen estado, roturas y cancelaciones."
+          to="/equipment-loans"
+          icon={LuUsers}/* no tengo icono todavia, de dejo el de miembros por defecto*/
+        />
+
+        {/* Future sections can be added here following the same pattern */}
         {/* Tu nueva sección integrada impecable */}
         <SectionCard 
           title="Casilleros"
