@@ -69,6 +69,18 @@ export class PrismaSportRepository implements SportRepository {
         return sports.map((sport) => this.mapToDomain(sport));
     }
 
+    async update(id: string, data: Partial<Omit<Sport, 'id' | 'name'>>): Promise<Sport> {
+        const updated = await prisma.sport.update({
+            where: { id },
+            data: {
+                description: data.description,
+                max_capacity: data.max_capacity,
+            },
+        });
+
+        return this.mapToDomain(updated);
+    }
+
     private mapToDomain(sport: DBSport): Sport {
         return new Sport(
             sport.id,
