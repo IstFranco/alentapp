@@ -1,6 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { EquipmentLoanController } from '../controllers/EquipmentLoanController.js';
-import { createEquipmentLoanSchema, returnEquipmentLoanSchema } from '../validators/EquipmentLoanValidators.js';
+import { 
+  createEquipmentLoanSchema, 
+  returnEquipmentLoanSchema,
+  cancelEquipmentLoanSchema
+} from '../validators/EquipmentLoanValidators.js';
 import { validateSchema } from '../middlewares/validateSchema.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 import { requireRole } from '../middlewares/requireRole.js';
@@ -38,5 +42,17 @@ export async function equipmentLoanRoutes(
       ]
     },
     (request, reply) => controller.returnLoan(request, reply)
+  );
+
+  fastify.patch(
+    '/equipment-loans/:id/cancel',
+    {
+      preHandler: [
+        //requireAuth,
+        //requireRole(['admin']),
+        validateSchema(cancelEquipmentLoanSchema)
+      ]
+    },
+    (request, reply) => controller.cancelLoan(request, reply)
   );
 }

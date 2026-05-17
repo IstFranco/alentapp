@@ -19,6 +19,10 @@ export class LoanStatusVO {
     return new LoanStatusVO(LoanStatus.LOANED);
   }
 
+  static createCanceled(): LoanStatusVO {
+    return new LoanStatusVO(LoanStatus.CANCELED);
+  }
+
   getValue(): LoanStatus {
     return this.value;
   }

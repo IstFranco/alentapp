@@ -1,5 +1,10 @@
 import { LoanStatus, LoanStatusVO } from '../value-objects/LoanStatus.js';
-import { InvalidStateTransitionError, MissingNotesError } from '../errors/EquipmentLoanErrors.js';
+import { 
+  InvalidStateTransitionError, 
+  MissingNotesError,
+  CannotCancelProcessedLoanError,
+  AlreadyCanceledError
+} from '../errors/EquipmentLoanErrors.js';
 
 export interface EquipmentLoanProps {
   id: string;
@@ -89,6 +94,43 @@ export class EquipmentLoan {
     
     if (!this.props.isActive) {
       throw new InvalidStateTransitionError('Inactive');
+    }
+  }
+
+  cancelEquipment(reason?: string): void {
+    this.validateCanBeCanceled();
+    
+    this.props.status = LoanStatusVO.createCanceled();
+    
+    this.props.isActive = false;
+    
+    this.props.canceledDate = new Date();
+    
+    // Concatenar razón a las notas existentes
+    if (reason && reason.trim().length > 0) {
+      const cancellationNote = `Cancelado: ${reason.trim()}`;
+      this.props.notes = this.props.notes 
+        ? `${this.props.notes} | ${cancellationNote}`
+        : cancellationNote;
+    }
+  }
+
+  private validateCanBeCanceled(): void {
+    if (this.props.status.isCanceled()) {
+      throw new AlreadyCanceledError();
+    }
+    
+    if (this.props.status.isReturned()) {
+      throw new CannotCancelProcessedLoanError('Returned');
+    }
+    
+    if (this.props.status.isDamaged()) {
+      throw new CannotCancelProcessedLoanError('Damaged');
+    }
+    
+    // Solo se puede cancelar si está en estado "Loaned" y activo
+    if (!this.props.status.isLoaned()) {
+      throw new CannotCancelProcessedLoanError(this.props.status.getValue());
     }
   }
 

@@ -1,6 +1,6 @@
-import { EquipmentLoan } from '../../domain/entities/EquipmentLoan';
-import { EquipmentLoanResponseDto } from '@alentapp/shared/dtos/equipment-loan.dto';
-import { LoanStatusVO } from '../../domain/value-objects/LoanStatus';
+import { EquipmentLoan } from '../../domain/entities/EquipmentLoan.js';
+import { EquipmentLoanResponseDto } from '@alentapp/shared/dtos/equipment-loan.dto.js';
+import { LoanStatusVO } from '../../domain/value-objects/LoanStatus.js';
 
 export class EquipmentLoanMapper {
   static toResponseDto(loan: EquipmentLoan): EquipmentLoanResponseDto {
@@ -8,8 +8,10 @@ export class EquipmentLoanMapper {
       id: loan.id,
       itemName: loan.itemName,
       status: loan.status.getValue(),
+      isActive: loan.isActive,
       loanDate: loan.loanDate.toISOString(),
       returnDate: loan.returnDate ? loan.returnDate.toISOString() : null,
+      canceledDate: loan.canceledDate ? loan.canceledDate.toISOString() : null,
       memberId: loan.memberId,
       notes: loan.notes
     };

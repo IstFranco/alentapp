@@ -61,3 +61,23 @@ export const returnEquipmentLoanSchema = z.object({
 
 export type ReturnEquipmentLoanParams = z.infer<typeof returnEquipmentLoanSchema>['params'];
 export type ReturnEquipmentLoanBody = z.infer<typeof returnEquipmentLoanSchema>['body'];
+
+export const cancelEquipmentLoanSchema = z.object({
+  params: z.object({
+    id: z
+      .string({
+        required_error: 'El ID del préstamo es requerido'
+      })
+      .uuid('El ID del préstamo debe ser un UUID válido')
+  }),
+  body: z.object({
+    reason: z
+      .string()
+      .max(500, 'El motivo no puede exceder 500 caracteres')
+      .trim()
+      .optional()
+  })
+});
+
+export type CancelEquipmentLoanParams = z.infer<typeof cancelEquipmentLoanSchema>['params'];
+export type CancelEquipmentLoanBody = z.infer<typeof cancelEquipmentLoanSchema>['body'];
