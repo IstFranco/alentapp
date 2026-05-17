@@ -126,7 +126,7 @@ export function LockersView() {
               />
             </Box>
           </HStack>
-          <Button type="submit" colorScheme="blue" isLoading={loading} alignSelf="flex-end" px="6">
+          <Button type="submit" colorScheme="blue" loading={loading} alignSelf="flex-end" px="6">
             Crear Casillero
           </Button>
         </VStack>
@@ -170,17 +170,17 @@ export function LockersView() {
                 <Text fontSize="sm" color="fg.muted">📍 Ubicación: {locker.location}</Text>
                 {locker.member_id && (
                   <Box bg="bg.muted/50" p="2" borderRadius="md">
-                    <Text fontSize="xs" color="fg.muted" isTruncated>👤 Socio: {locker.member_id}</Text>
+                    <Text fontSize="xs" color="fg.muted" truncate>👤 Socio: {locker.member_id}</Text>
                   </Box>
                 )}
                 
                 <Box mt="4">
                   {isAvailable ? (
-                    <Button isLoading={loading} colorScheme="blue" w="full" onClick={() => handleReserve(locker.id)}>
+                    <Button loading={loading} colorScheme="blue" w="full" onClick={() => handleReserve(locker.id)}>
                       Reservar Casillero
                     </Button>
                   ) : (
-                    <Button isLoading={loading} colorScheme="gray" w="full" onClick={() => handleRelease(locker.id)}>
+                    <Button loading={loading} colorScheme="gray" w="full" onClick={() => handleRelease(locker.id)}>
                       Liberar Casillero
                     </Button>
                   )}
