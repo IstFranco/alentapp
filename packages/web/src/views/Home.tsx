@@ -1,5 +1,5 @@
 import { Box, SimpleGrid, Heading, Text, VStack } from "@chakra-ui/react";
-import { LuUsers, LuLayers } from "react-icons/lu";
+import { LuUsers, LuLayers, LuFileText } from "react-icons/lu";
 import { SectionCard } from "../components/SectionCard";
 
 export function HomeView() {
@@ -38,6 +38,13 @@ export function HomeView() {
           description="Gestioná la asignación, reserva, mantenimiento y liberación de casilleros en las sedes."
           to="/lockers"
           icon={LuLayers}
+        />
+
+        <SectionCard 
+          title="Certificados Médicos"
+          description="Administra los certificados médicos de los socios, su estado de validación y vigencia."
+          to="/medical-certificates"
+          icon={LuFileText}
         />
 
         {/* Secciones futuras en estado dashed */}
