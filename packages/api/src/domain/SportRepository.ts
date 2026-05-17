@@ -6,4 +6,5 @@ export interface SportRepository {
     findById(id: string): Promise<Sport | null>;
     findAll(name?: string): Promise<Sport[]>;
     update(id: string, data: Partial<Omit<Sport, 'id' | 'name'>>): Promise<Sport>;
+    deleteById(id: string): Promise<void>;
 }

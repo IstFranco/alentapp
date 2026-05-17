@@ -14,7 +14,7 @@ import {
     Textarea,
     IconButton,
 } from '@chakra-ui/react';
-import { LuPencil, LuPlus, LuRefreshCw, LuSearch } from 'react-icons/lu';
+import { LuPencil, LuPlus, LuRefreshCw, LuSearch, LuTrash2 } from 'react-icons/lu';
 import type { CreateSportRequest, SportDTO } from '@alentapp/shared';
 import { sportsService } from '../services/sports';
 import { Field } from '../components/ui/field';
@@ -140,6 +140,23 @@ export function SportsView() {
             setFormError(err.message || 'Error al crear el deporte');
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDelete = async (sport: SportDTO) => {
+        if (!window.confirm(`Estas seguro de que queres eliminar el deporte "${sport.name}"?`)) {
+            return;
+        }
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            await sportsService.delete(sport.id);
+            fetchSports(searchName.trim() || undefined);
+        } catch (err: any) {
+            setError(err.message || 'Error al eliminar el deporte');
+            setIsLoading(false);
         }
     };
 
@@ -336,14 +353,25 @@ export function SportsView() {
                                             </Box>
                                         </Table.Cell>
                                         <Table.Cell textAlign="end">
-                                            <IconButton
-                                                variant="ghost"
-                                                size="sm"
-                                                aria-label="Editar deporte"
-                                                onClick={() => openEditModal(sport)}
-                                            >
-                                                <LuPencil />
-                                            </IconButton>
+                                            <HStack gap="2" justify="flex-end">
+                                                <IconButton
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    aria-label="Editar deporte"
+                                                    onClick={() => openEditModal(sport)}
+                                                >
+                                                    <LuPencil />
+                                                </IconButton>
+                                                <IconButton
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    colorPalette="red"
+                                                    aria-label="Eliminar deporte"
+                                                    onClick={() => handleDelete(sport)}
+                                                >
+                                                    <LuTrash2 />
+                                                </IconButton>
+                                            </HStack>
                                         </Table.Cell>
                                     </Table.Row>
                                 ))}
