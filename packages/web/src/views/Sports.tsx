@@ -12,8 +12,9 @@ import {
     Table,
     Text,
     Textarea,
+    IconButton,
 } from '@chakra-ui/react';
-import { LuPlus, LuRefreshCw, LuSearch } from 'react-icons/lu';
+import { LuPencil, LuPlus, LuRefreshCw, LuSearch } from 'react-icons/lu';
 import type { CreateSportRequest, SportDTO } from '@alentapp/shared';
 import { sportsService } from '../services/sports';
 import { Field } from '../components/ui/field';
@@ -49,6 +50,7 @@ export function SportsView() {
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [editingSportId, setEditingSportId] = useState<string | null>(null);
     const [formData, setFormData] = useState<CreateSportRequest>(initialFormData);
     const [numericFields, setNumericFields] = useState(initialNumericFields);
     const [formError, setFormError] = useState<string | null>(null);
@@ -69,8 +71,26 @@ export function SportsView() {
     };
 
     const openCreateModal = () => {
+        setEditingSportId(null);
         setFormData(initialFormData);
         setNumericFields(initialNumericFields);
+        setFormError(null);
+        setIsDialogOpen(true);
+    };
+
+    const openEditModal = (sport: SportDTO) => {
+        setEditingSportId(sport.id);
+        setFormData({
+            name: sport.name,
+            description: sport.description,
+            max_capacity: sport.max_capacity,
+            additional_price: sport.additional_price,
+            requires_medical_certificate: sport.requires_medical_certificate,
+        });
+        setNumericFields({
+            max_capacity: String(sport.max_capacity),
+            additional_price: String(sport.additional_price),
+        });
         setFormError(null);
         setIsDialogOpen(true);
     };
@@ -98,12 +118,20 @@ export function SportsView() {
         setFormError(null);
 
         try {
-            await sportsService.create({
-                ...formData,
-                max_capacity: Number(numericFields.max_capacity),
-                additional_price: Number(numericFields.additional_price || 0),
-            });
+            if (editingSportId) {
+                await sportsService.update(editingSportId, {
+                    description: formData.description,
+                    max_capacity: Number(numericFields.max_capacity),
+                });
+            } else {
+                await sportsService.create({
+                    ...formData,
+                    max_capacity: Number(numericFields.max_capacity),
+                    additional_price: Number(numericFields.additional_price || 0),
+                });
+            }
             setIsDialogOpen(false);
+            setEditingSportId(null);
             setFormData(initialFormData);
             setNumericFields(initialNumericFields);
             setSearchName('');
@@ -157,7 +185,7 @@ export function SportsView() {
                 <DialogContent>
                     <form onSubmit={handleSubmit}>
                         <DialogHeader>
-                            <DialogTitle>Agregar Nuevo Deporte</DialogTitle>
+                            <DialogTitle>{editingSportId ? 'Editar Deporte' : 'Agregar Nuevo Deporte'}</DialogTitle>
                         </DialogHeader>
                         <DialogBody>
                             <Stack gap="4">
@@ -172,6 +200,7 @@ export function SportsView() {
                                         value={formData.name}
                                         onChange={(event) => setFormData({ ...formData, name: event.target.value })}
                                         placeholder="Ej. Tenis"
+                                        disabled={Boolean(editingSportId)}
                                         required
                                     />
                                 </Field>
@@ -199,30 +228,34 @@ export function SportsView() {
                                     />
                                 </Field>
 
-                                <Field label="Precio adicional">
-                                    <Input
-                                        type="number"
-                                        min={0}
-                                        step="0.01"
-                                        value={numericFields.additional_price}
-                                        onChange={(event) => setNumericFields({
-                                            ...numericFields,
-                                            additional_price: event.target.value,
-                                        })}
-                                    />
-                                </Field>
+                                {!editingSportId && (
+                                    <>
+                                        <Field label="Precio adicional">
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                step="0.01"
+                                                value={numericFields.additional_price}
+                                                onChange={(event) => setNumericFields({
+                                                    ...numericFields,
+                                                    additional_price: event.target.value,
+                                                })}
+                                            />
+                                        </Field>
 
-                                <Box as="label" display="flex" alignItems="center" gap="2" fontSize="sm" fontWeight="medium">
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.requires_medical_certificate}
-                                        onChange={(event) => setFormData({
-                                            ...formData,
-                                            requires_medical_certificate: event.target.checked,
-                                        })}
-                                    />
-                                    Requiere certificado medico
-                                </Box>
+                                        <Box as="label" display="flex" alignItems="center" gap="2" fontSize="sm" fontWeight="medium">
+                                            <input
+                                                type="checkbox"
+                                                checked={formData.requires_medical_certificate}
+                                                onChange={(event) => setFormData({
+                                                    ...formData,
+                                                    requires_medical_certificate: event.target.checked,
+                                                })}
+                                            />
+                                            Requiere certificado medico
+                                        </Box>
+                                    </>
+                                )}
                             </Stack>
                         </DialogBody>
                         <DialogFooter>
@@ -230,7 +263,7 @@ export function SportsView() {
                                 <Button variant="outline">Cancelar</Button>
                             </DialogActionTrigger>
                             <Button type="submit" colorPalette="blue" loading={isSubmitting}>
-                                Crear Deporte
+                                {editingSportId ? 'Guardar Cambios' : 'Crear Deporte'}
                             </Button>
                         </DialogFooter>
                         <DialogCloseTrigger />
@@ -276,6 +309,7 @@ export function SportsView() {
                                     <Table.ColumnHeader py="4">Cupo Maximo</Table.ColumnHeader>
                                     <Table.ColumnHeader py="4">Precio Adicional</Table.ColumnHeader>
                                     <Table.ColumnHeader py="4">Certificado Medico</Table.ColumnHeader>
+                                    <Table.ColumnHeader py="4" textAlign="end">Acciones</Table.ColumnHeader>
                                 </Table.Row>
                             </Table.Header>
                             <Table.Body>
@@ -300,6 +334,16 @@ export function SportsView() {
                                             >
                                                 {sport.requires_medical_certificate ? 'Requerido' : 'No requerido'}
                                             </Box>
+                                        </Table.Cell>
+                                        <Table.Cell textAlign="end">
+                                            <IconButton
+                                                variant="ghost"
+                                                size="sm"
+                                                aria-label="Editar deporte"
+                                                onClick={() => openEditModal(sport)}
+                                            >
+                                                <LuPencil />
+                                            </IconButton>
                                         </Table.Cell>
                                     </Table.Row>
                                 ))}
