@@ -129,6 +129,11 @@ export function MedicalCertificatesView() {
         }
     };
 
+    const getMemberName = (memberId: string): string => {
+        const member = members.find((m) => m.id === memberId);
+        return member ? member.name : memberId;
+    };
+
     useEffect(() => {
         fetchCertificates();
         fetchMembers();
@@ -252,7 +257,7 @@ export function MedicalCertificatesView() {
                 <Table.Root size="md" variant="line" interactive>
                 <Table.Header>
                     <Table.Row bg="bg.muted/50">
-                        <Table.ColumnHeader py="4">Socio (ID)</Table.ColumnHeader>
+                        <Table.ColumnHeader py="4">Socio</Table.ColumnHeader>
                         <Table.ColumnHeader py="4">Fecha Emisión</Table.ColumnHeader>
                         <Table.ColumnHeader py="4">Fecha Vencimiento</Table.ColumnHeader>
                         <Table.ColumnHeader py="4">Matrícula Médica</Table.ColumnHeader>
@@ -263,8 +268,8 @@ export function MedicalCertificatesView() {
                 <Table.Body>
                     {certificates.map((cert) => (
                     <Table.Row key={cert.id} _hover={{ bg: "bg.muted/30" }}>
-                        <Table.Cell fontWeight="semibold" color="fg.emphasized" fontSize="xs" fontFamily="mono">
-                        {cert.memberId}
+                        <Table.Cell fontWeight="semibold" color="fg.emphasized">
+                            {getMemberName(cert.memberId)}
                         </Table.Cell>
                         <Table.Cell color="fg.muted">{cert.issueDate}</Table.Cell>
                         <Table.Cell color="fg.muted">{cert.expiryDate}</Table.Cell>
