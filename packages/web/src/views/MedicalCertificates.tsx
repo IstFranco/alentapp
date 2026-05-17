@@ -12,7 +12,7 @@ import {
     Input,
     IconButton,
 } from "@chakra-ui/react";
-import { LuPlus, LuRefreshCw, LuCheck } from "react-icons/lu";
+import { LuPlus, LuRefreshCw, LuCheck, LuTrash2} from "react-icons/lu";
 import { useEffect, useState } from "react";
 import { medicalCertificatesService } from "../services/medicalCertificates";
 import { membersService } from "../services/members";
@@ -114,6 +114,18 @@ export function MedicalCertificatesView() {
             fetchCertificates();
         } catch (err: any) {
             alert(err.message || "Error al validar el certificado");
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("¿Estás seguro de que querés eliminar este certificado médico? Esta acción no se puede deshacer desde la interfaz.")) {
+            return;
+        }
+        try {
+            await medicalCertificatesService.delete(id);
+            fetchCertificates();
+        } catch (err: any) {
+            alert(err.message || "Error al eliminar el certificado médico");
         }
     };
 
@@ -284,6 +296,15 @@ export function MedicalCertificatesView() {
                                     <LuCheck />
                                 </IconButton>
                                 )}
+                                <IconButton 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    colorPalette="red"
+                                    aria-label="Eliminar certificado"
+                                    onClick={() => handleDelete(cert.id)}
+                                >
+                                    <LuTrash2 />
+                                </IconButton>
                             </HStack>
                         </Table.Cell>
                     </Table.Row>
