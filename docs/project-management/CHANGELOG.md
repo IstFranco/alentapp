@@ -4,6 +4,16 @@ Todos los cambios importantes de este proyecto se documentan en este archivo.
 
 ENTIDAD: MEDICAL CERTIFICATES
 ---
+## [1.6.0] - 2026-05-17
+
+### Added
+- Se implementa el frontend completo de Medical Certificates: listado, alta, modificación y baja.
+- Se crea el servicio HTTP `medicalCertificates.ts` para consumir los endpoints del backend.
+- Se crea la vista `MedicalCertificates.tsx` con tabla, modal de alta y botones de acciones por fila.
+- Se agrega la ruta `/medical-certificates` y un link de navegación en el menú superior.
+- Se agrega una tarjeta de acceso en la página principal (Home).
+
+---
 ## [1.5.0] - 2026-05-17
 
 ### Added
