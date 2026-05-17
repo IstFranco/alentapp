@@ -21,9 +21,9 @@ export class CreateEquipmentLoanUseCase {
     this.validateInput(request);
 
     // Verificar existencia del socio
-    const member = await this.memberRepository.findById(request.memberId);
+    const member = await this.memberRepository.findByDni(request.memberDni);
     if (!member) {
-      throw new MemberNotFoundError(request.memberId);
+      throw new MemberNotFoundError(request.memberDni);
     }
 
     // Regla de Negocio: Restricción por Categoría usando el string literal
@@ -34,7 +34,7 @@ export class CreateEquipmentLoanUseCase {
     // Crear entidad de dominio
     const loan = EquipmentLoan.create({
       itemName: request.itemName.trim(),
-      memberId: request.memberId,
+      memberId: member.id,
       notes: request.notes?.trim()
     });
 
@@ -50,13 +50,13 @@ export class CreateEquipmentLoanUseCase {
       throw new InvalidItemNameError();
     }
 
-    if (!request.memberId || !this.isValidUUID(request.memberId)) {
-      throw new InvalidMemberIdError();
+    if (!request.memberDni || !this.isValidDni(request.memberDni)) {
+      throw new Error("El DNI del socio es inválido");
     }
   }
 
-  private isValidUUID(id: string): boolean {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(id);
+  private isValidDni(dni: string): boolean {
+    const dniRegex = /^[0-9]{6,10}$/;
+    return dniRegex.test(dni.trim());
   }
 }

@@ -10,11 +10,12 @@ export const createEquipmentLoanSchema = z.object({
       .max(255, 'El nombre del ítem no puede exceder 255 caracteres')
       .trim(),
     
-    memberId: z
-      .string({
-        required_error: 'El ID del socio es requerido'
-      })
-      .uuid('El ID del socio debe ser un UUID válido'),
+    memberDni: z
+      .string({ required_error: 'El DNI del socio es requerido' })
+      .min(6, 'El DNI debe tener al menos 6 caracteres')
+      .max(10, 'El DNI no puede exceder 10 caracteres')
+      .regex(/^[0-9]+$/, 'El DNI solo debe contener números')
+      .trim(),
     
     notes: z
       .string()
