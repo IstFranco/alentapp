@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, Heading, Text, SimpleGrid, Badge, Button, VStack, HStack, Input, IconButton } from "@chakra-ui/react";
 import { LuTrash2 } from "react-icons/lu"; 
 import { lockerService } from '../services/lockers';
@@ -12,15 +12,7 @@ interface Locker {
 }
 
 export function LockersView() {
-  const [lockers, setLockers] = useState<Locker[]>([
-    {
-      id: "67615b93-c42d-4bcf-9093-4b478febe73e",
-      number: 105,
-      location: "Sector Canchas",
-      status: "Available",
-      member_id: null
-    }
-  ]);
+  const [lockers, setLockers] = useState<Locker[]>([]);
   
   const [newNumber, setNewNumber] = useState('');
   const [newLocation, setNewLocation] = useState('');
@@ -28,23 +20,39 @@ export function LockersView() {
 
   const SIMULATED_MEMBER_ID = "00000000-0000-0000-0000-000000000001";
 
+  const fetchLockers = async () => {
+    setLoading(true);
+    try {
+      const data = await lockerService.getAll();
+      setLockers(data);
+    } catch (error: any) {
+      alert(error.message || "Error al cargar los casilleros");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newNumber || !newLocation) return alert("Por favor completá todos los campos");
 
     setLoading(true);
     try {
-      const createdLocker = await lockerService.createLocker(Number(newNumber), newLocation);
-      setLockers([...lockers, createdLocker]);
+      await lockerService.createLocker(Number(newNumber), newLocation);
+      await fetchLockers();
       setNewNumber('');
       setNewLocation('');
       alert("¡Casillero creado con éxito!");
-    } catch (error) {
-      alert("Error al dar de alta el casillero");
+    } catch (error: any) {
+      alert(error.message || "Error al dar de alta el casillero");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchLockers();
+  }, []);
 
   // Función para manejar la eliminación (DELETE)
   const handleDelete = async (id: string, number: number, status: string) => {

@@ -134,13 +134,26 @@ export function buildApp() {
     server.delete('/api/v1/socios/:id', memberController.delete.bind(memberController));
     
     // RUTAS LOCKERS (EXISTENTES)
+    server.get('/api/v1/lockers', async (_request, reply) => {
+        try {
+            const lockers = await lockerRepo.findAll();
+            return reply.status(200).send(lockers);
+        } catch (error: any) {
+            return reply.status(500).send({ error: error.message });
+        }
+    });
+
     server.post('/api/v1/lockers', async (request, reply) => {
-        const body = request.body as any;
-        const result = await newLockerUseCase.execute({
-            number: Number(body.number),
-            location: body.location
-        });
-        return reply.status(201).send(result);
+        try {
+            const body = request.body as any;
+            const result = await newLockerUseCase.execute({
+                number: Number(body.number),
+                location: body.location
+            });
+            return reply.status(201).send(result);
+        } catch (error: any) {
+            return reply.status(400).send({ error: error.message });
+        }
     });
 
     server.delete('/api/v1/lockers/:id', async (request, reply) => {

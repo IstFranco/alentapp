@@ -12,6 +12,21 @@ const prisma = new PrismaClient({
 });
 
 export class PrismaLockerRepository implements LockerRepository {
+  async findAll(): Promise<Locker[]> {
+    const prismaLockers = await prisma.locker.findMany({
+      orderBy: {
+        number: 'asc',
+      },
+    });
+
+    return prismaLockers.map((locker) => new Locker(
+      locker.id,
+      locker.number,
+      locker.location,
+      locker.status as any,
+      locker.member_id
+    ));
+  }
   
   async findByNumber(number: number): Promise<Locker | null> {
     const prismaLocker = await prisma.locker.findUnique({
@@ -64,8 +79,8 @@ export class PrismaLockerRepository implements LockerRepository {
     );
   }
 
-async deleteById(id: string): Promise<void> {
-    await this.prisma.locker.delete({
+  async deleteById(id: string): Promise<void> {
+    await prisma.locker.delete({
       where: { id },
     });
   }
