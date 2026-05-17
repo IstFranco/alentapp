@@ -3,9 +3,12 @@ import { createBrowserRouter } from "react-router";
 import { MembersView } from "./views/Members";
 import { HomeView } from "./views/Home";
 import { EquipmentLoansView } from "./views/EquipmentLoans";
+import { LockersView } from "./views/Lockers";
+import { MedicalCertificatesView } from "./views/MedicalCertificates";
+import { SportsView } from "./views/Sports";
 import Layout from "./Layout";
 
-export let router = createBrowserRouter([
+export const router = createBrowserRouter([
   {
     Component: Layout,
     children: [
@@ -21,32 +24,8 @@ export let router = createBrowserRouter([
         path: "/equipment-loans",
         Component: EquipmentLoansView,
       },
-    ],
-  },
-]);
-import { createBrowserRouter } from "react-router";
-
-import { MembersView } from "./views/Members";
-import { HomeView } from "./views/Home";
-import { LockersView } from "./views/Lockers"; 
-import { MedicalCertificatesView } from "./views/MedicalCertificates";
-import { SportsView } from "./views/Sports";
-import Layout from "./Layout";
-
-export let router = createBrowserRouter([
-  {
-    Component: Layout,
-    children: [
       {
-        path: "/",
-        Component: HomeView,
-      },
-      {
-        path: "/members",
-        Component: MembersView,
-      },
-      {
-        path: "/lockers", 
+        path: "/lockers",
         Component: LockersView,
       },
       {
