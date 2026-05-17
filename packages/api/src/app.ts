@@ -27,6 +27,7 @@ import { PrismaSportRepository } from './infrastructure/PrismaSportRepository.js
 import { CreateSportUseCase } from './application/CreateSportUseCase.js';
 import { GetAllSportsUseCase } from './application/GetAllSportsUseCase.js';
 import { UpdateSportUseCase } from './application/UpdateSportUseCase.js';
+import { DeleteSportUseCase } from './application/DeleteSportUseCase.js';
 import { SportController } from './delivery/SportController.js';
 
 // NUEVOS IMPORTS PARA ESTE TDD
@@ -125,7 +126,13 @@ export function buildApp() {
     const createSportUseCase = new CreateSportUseCase(sportRepo);
     const getAllSportsUseCase = new GetAllSportsUseCase(sportRepo);
     const updateSportUseCase = new UpdateSportUseCase(sportRepo);
-    const sportController = new SportController(createSportUseCase, getAllSportsUseCase, updateSportUseCase);
+    const deleteSportUseCase = new DeleteSportUseCase(sportRepo);
+    const sportController = new SportController(
+        createSportUseCase,
+        getAllSportsUseCase,
+        updateSportUseCase,
+        deleteSportUseCase,
+    );
 
     // RUTAS SOCIOS
     server.get('/api/v1/socios', memberController.getAll.bind(memberController));
@@ -218,6 +225,7 @@ export function buildApp() {
     server.get('/api/v1/sports', sportController.getAll.bind(sportController));
     server.post('/api/v1/sports', sportController.create.bind(sportController));
     server.patch('/api/v1/sports/:id', sportController.update.bind(sportController));
+    server.delete('/api/v1/sports/:id', sportController.delete.bind(sportController));
 
     server.get('/', async (req, rep) => {
         rep.status(200).send({ msg: 'asd' })

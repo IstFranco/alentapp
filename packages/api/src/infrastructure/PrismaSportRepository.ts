@@ -81,6 +81,12 @@ export class PrismaSportRepository implements SportRepository {
         return this.mapToDomain(updated);
     }
 
+    async deleteById(id: string): Promise<void> {
+        await prisma.sport.delete({
+            where: { id },
+        });
+    }
+
     private mapToDomain(sport: DBSport): Sport {
         return new Sport(
             sport.id,
