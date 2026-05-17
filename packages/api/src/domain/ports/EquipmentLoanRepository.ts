@@ -1,4 +1,4 @@
-import { EquipmentLoan } from '../entities/EquipmentLoan';
+import { EquipmentLoan } from '../entities/EquipmentLoan.js';
 
 export interface EquipmentLoanRepository {
 
@@ -7,4 +7,6 @@ export interface EquipmentLoanRepository {
   findById(id: string): Promise<EquipmentLoan | null>;
 
   update(loan: EquipmentLoan): Promise<EquipmentLoan>;
+
+  findAll(): Promise<EquipmentLoan[]>;
 }

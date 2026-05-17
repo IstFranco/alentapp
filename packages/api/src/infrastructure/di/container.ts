@@ -4,6 +4,7 @@ import { PrismaEquipmentLoanRepository } from '../repositories/PrismaEquipmentLo
 import { PostgresMemberRepository } from '../PostgresMemberRepository.js';
 import { CreateEquipmentLoanUseCase } from '../../application/use-cases/CreateEquipmentLoanUseCase.js';
 import { ReturnEquipmentLoanUseCase } from '../../application/use-cases/ReturnEquipmentLoanUseCase.js';
+import { GetEquipmentLoansUseCase } from '../../application/use-cases/GetEquipmentLoansUseCase.js';
 import { CancelEquipmentLoanUseCase } from '../../application/use-cases/CancelEquipmentLoanUseCase.js';
 import { EquipmentLoanController } from '../../delivery/controllers/EquipmentLoanController.js';
 
@@ -41,6 +42,10 @@ export class DependencyContainer {
       equipmentLoanRepository
     );
 
+    const getEquipmentLoansUseCase = new GetEquipmentLoansUseCase(
+      equipmentLoanRepository
+    );
+
     const cancelEquipmentLoanUseCase = new CancelEquipmentLoanUseCase(
       equipmentLoanRepository
     );
@@ -48,6 +53,7 @@ export class DependencyContainer {
     return new EquipmentLoanController(
       createEquipmentLoanUseCase,
       returnEquipmentLoanUseCase,
+      getEquipmentLoansUseCase,
       cancelEquipmentLoanUseCase
     );
   }

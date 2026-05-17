@@ -13,6 +13,18 @@ export async function equipmentLoanRoutes(
   fastify: FastifyInstance,
   controller: EquipmentLoanController
 ) {
+  // GET /api/v1/equipment-loans - Listar préstamos
+  fastify.get(
+    '/equipment-loans',
+    {
+      preHandler: [
+        //requireAuth,
+        //requireRole(['admin'])
+      ]
+    },
+    (request, reply) => controller.list(request, reply)
+  );
+
   // POST /api/v1/equipment-loans
   fastify.post(
     '/equipment-loans',

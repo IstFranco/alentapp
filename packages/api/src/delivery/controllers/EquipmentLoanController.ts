@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { CreateEquipmentLoanUseCase } from '../../application/use-cases/CreateEquipmentLoanUseCase.js';
 import { ReturnEquipmentLoanUseCase } from '../../application/use-cases/ReturnEquipmentLoanUseCase.js';
+import { GetEquipmentLoansUseCase } from '../../application/use-cases/GetEquipmentLoansUseCase.js';
 import { CancelEquipmentLoanUseCase } from '../../application/use-cases/CancelEquipmentLoanUseCase.js';
 import { 
   CreateEquipmentLoanBody, 
@@ -26,6 +27,7 @@ export class EquipmentLoanController {
   constructor(
     private readonly createEquipmentLoanUseCase: CreateEquipmentLoanUseCase,
     private readonly returnEquipmentLoanUseCase: ReturnEquipmentLoanUseCase,
+    private readonly getEquipmentLoansUseCase: GetEquipmentLoansUseCase,
     private readonly cancelEquipmentLoanUseCase: CancelEquipmentLoanUseCase
   ) {}
 
@@ -55,6 +57,19 @@ export class EquipmentLoanController {
       );
       
       return reply.status(200).send(result);
+    } catch (error) {
+      this.handleError(error, reply);
+    }
+  }
+
+  // GET /equipment-loans
+  async list(
+    request: FastifyRequest,
+    reply: FastifyReply
+  ): Promise<void> {
+    try {
+      const loans = await this.getEquipmentLoansUseCase.execute();
+      return reply.status(200).send(loans);
     } catch (error) {
       this.handleError(error, reply);
     }

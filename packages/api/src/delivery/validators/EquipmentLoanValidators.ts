@@ -35,25 +35,25 @@ export const returnEquipmentLoanSchema = z.object({
       .uuid('El ID del préstamo debe ser un UUID válido')
   }),
   body: z.object({
-    status: z.enum(['Returned', 'Damaged'], {
-      required_error: 'El estado es requerido',
-      invalid_type_error: 'El estado debe ser "Returned" o "Damaged"'
-    }),
+    status: z
+      .enum(['Returned', 'Damaged'])
+      .optional()
+      .default('Returned'),
     notes: z
       .string()
-      .min(10, 'Las notas deben tener al menos 10 caracteres')
       .max(1000, 'Las notas no pueden exceder 1000 caracteres')
       .trim()
       .optional()
   }).refine(
     (data) => {
       if (data.status === 'Damaged') {
-        return data.notes !== undefined && data.notes.length >= 10;
+        // Validamos que si está roto tenga una nota explicativa de mínimo 10 caracteres
+        return data.notes !== undefined && data.notes.trim().length >= 10;
       }
       return true;
     },
     {
-      message: 'Si el material está dañado, debe proporcionar notas explicativas',
+      message: 'Si el material está dañado, debe proporcionar notas explicativas (mínimo 10 caracteres)',
       path: ['notes']
     }
   )
