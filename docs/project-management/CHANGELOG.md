@@ -4,6 +4,17 @@ Todos los cambios importantes de este proyecto se documentan en este archivo.
 
 ENTIDAD: MEDICAL CERTIFICATES
 ---
+## [1.3.0] - 2026-05-16
+
+### Added
+- Se implementa el backend del Alta para Medical Certificates según el TDD-0004 (endpoint `POST /api/v1/medical-certificates`).
+- Se agrega el modelo `MedicalCertificate` al schema de Prisma con baja lógica vía `deletedAt`.
+- Se incorporan los DTOs `MedicalCertificateDTO` y `CreateMedicalCertificateRequest` al paquete compartido `@alentapp/shared`.
+- Se agrega endpoint `GET /api/v1/medical-certificates` para validación funcional del backend.
+
+### Fixed
+- Se declara `@alentapp/shared` como dependencia explícita del paquete `@alentapp/api` (estaba faltando).
+
 ## [1.2.0] - 2026-05-11
 
 ### Changed

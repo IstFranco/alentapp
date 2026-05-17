@@ -12,6 +12,11 @@ import { GetMembersUseCase } from './application/GetMembersUseCase.js';
 import { UpdateMemberUseCase } from './application/UpdateMemberUseCase.js';
 import { DeleteMemberUseCase } from './application/DeleteMemberUseCase.js';
 import { MemberController } from './delivery/MemberController.js';
+import { PostgresMedicalCertificateRepository } from './infrastructure/PostgresMedicalCertificateRepository.js';
+import { MedicalCertificateValidator } from './domain/services/MedicalCertificateValidator.js';
+import { CreateMedicalCertificateUseCase } from './application/NewMedicalCertificateUseCase.js';
+import { GetMedicalCertificatesUseCase } from './application/GetMedicalCertificatesUseCase.js';
+import { MedicalCertificateController } from './delivery/MedicalCertificateController.js';
 
 // NUEVOS IMPORTS PARA ESTE TDD
 import { ReserveLockerUseCase } from './application/ReserveLockerUseCase.js';
@@ -78,7 +83,20 @@ export function buildApp() {
         deleteMemberUseCase
     );
 
+    // INSTANCIACIÓN DE MEDICAL CERTIFICATE
+    const medicalCertificateRepo = new PostgresMedicalCertificateRepository();
+    const medicalCertificateValidator = new MedicalCertificateValidator(memberRepo);
+
+    const createMedicalCertificateUseCase = new CreateMedicalCertificateUseCase(medicalCertificateRepo, medicalCertificateValidator);
+    const getMedicalCertificatesUseCase = new GetMedicalCertificatesUseCase(medicalCertificateRepo);
+
+    const medicalCertificateController = new MedicalCertificateController(
+        createMedicalCertificateUseCase,
+        getMedicalCertificatesUseCase,
+    );
+
     // RUTAS SOCIOS
+
     server.get('/api/v1/socios', memberController.getAll.bind(memberController));
     server.post('/api/v1/socios', memberController.create.bind(memberController));
     server.put('/api/v1/socios/:id', memberController.update.bind(memberController));
@@ -126,7 +144,7 @@ export function buildApp() {
             return reply.status(error.statusCode || 500).send({ error: error.message });
         }
     });
-   
+
  // 2. Liberar Casillero
     server.patch('/api/v1/lockers/:id/release', async (request, reply) => {
         try {
@@ -159,6 +177,9 @@ export function buildApp() {
             return reply.status(error.statusCode || 500).send({ error: error.message });
         }
     });
+
+    server.get('/api/v1/medical-certificates', medicalCertificateController.getAll.bind(medicalCertificateController));
+    server.post('/api/v1/medical-certificates', medicalCertificateController.create.bind(medicalCertificateController));
 
     server.get('/', async (req, rep) => {
         rep.status(200).send({ msg: 'asd' })

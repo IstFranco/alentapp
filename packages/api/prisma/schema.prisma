@@ -33,8 +33,25 @@ model Member {
     category   MemberCategory
     status     MemberStatus   @default(Activo)
     created_at DateTime       @default(now())
+    medicalCertificates MedicalCertificate[]
 
     @@map("members") // Para que en la DB la tabla se llame 'members' en minúscula
+}
+
+
+model MedicalCertificate {
+  id            String    @id @default(uuid())
+  memberId      String    @map("member_id")
+  issueDate     DateTime  @map("issue_date") @db.Date
+  expiryDate    DateTime  @map("expiry_date") @db.Date
+  doctorLicense String    @map("doctor_license")
+  isValidated   Boolean   @default(false) @map("is_validated")
+  deletedAt     DateTime? @map("deleted_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+
+  @@index([memberId])
+  @@map("medical_certificates")
 }
 
 enum LockerStatus {
