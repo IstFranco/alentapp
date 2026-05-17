@@ -10,8 +10,9 @@ import {
     Spinner,
     Center,
     Input,
+    IconButton,
 } from "@chakra-ui/react";
-import { LuPlus, LuRefreshCw } from "react-icons/lu";
+import { LuPlus, LuRefreshCw, LuCheck } from "react-icons/lu";
 import { useEffect, useState } from "react";
 import { medicalCertificatesService } from "../services/medicalCertificates";
 import { membersService } from "../services/members";
@@ -101,6 +102,18 @@ export function MedicalCertificatesView() {
         alert(err.message || "Error al crear el certificado médico");
         } finally {
         setIsSubmitting(false);
+        }
+    };
+
+    const handleValidate = async (id: string) => {
+        if (!window.confirm("¿Confirmás que querés validar este certificado médico?")) {
+            return;
+        }
+        try {
+            await medicalCertificatesService.update(id, { isValidated: true });
+            fetchCertificates();
+        } catch (err: any) {
+            alert(err.message || "Error al validar el certificado");
         }
     };
 
@@ -227,11 +240,12 @@ export function MedicalCertificatesView() {
                 <Table.Root size="md" variant="line" interactive>
                 <Table.Header>
                     <Table.Row bg="bg.muted/50">
-                    <Table.ColumnHeader py="4">Socio (ID)</Table.ColumnHeader>
-                    <Table.ColumnHeader py="4">Fecha Emisión</Table.ColumnHeader>
-                    <Table.ColumnHeader py="4">Fecha Vencimiento</Table.ColumnHeader>
-                    <Table.ColumnHeader py="4">Matrícula Médica</Table.ColumnHeader>
-                    <Table.ColumnHeader py="4">Estado</Table.ColumnHeader>
+                        <Table.ColumnHeader py="4">Socio (ID)</Table.ColumnHeader>
+                        <Table.ColumnHeader py="4">Fecha Emisión</Table.ColumnHeader>
+                        <Table.ColumnHeader py="4">Fecha Vencimiento</Table.ColumnHeader>
+                        <Table.ColumnHeader py="4">Matrícula Médica</Table.ColumnHeader>
+                        <Table.ColumnHeader py="4">Estado</Table.ColumnHeader>
+                        <Table.ColumnHeader py="4" textAlign="end">Acciones</Table.ColumnHeader>
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
@@ -256,6 +270,21 @@ export function MedicalCertificatesView() {
                         >
                             {cert.isValidated ? 'Validado' : 'Pendiente'}
                         </Box>
+                        </Table.Cell>
+                        <Table.Cell textAlign="end">
+                            <HStack gap="2" justify="flex-end">
+                                {!cert.isValidated && (
+                                    <IconButton 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        colorPalette="green"
+                                        aria-label="Validar certificado"
+                                        onClick={() => handleValidate(cert.id)}
+                                    >
+                                    <LuCheck />
+                                </IconButton>
+                                )}
+                            </HStack>
                         </Table.Cell>
                     </Table.Row>
                     ))}
