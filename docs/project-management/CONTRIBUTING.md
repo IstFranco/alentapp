@@ -87,3 +87,10 @@ Este flujo asegura:
 * Revisión entre pares
 * Historial limpio y entendible
 * Trabajo colaborativo ordenado
+
+---
+
+## Plantilla TDD
+
+se define para el armado de cada tdd de su respectiva entidad, el uso del template ubicado en  .docs/project-management/TEMPLATE-TDD.md. Se espera que al menos se cumplan con cada una de las secciones definidas en el template, el no cumplimiento de esta tiene impatacto en la no aceptacion de la pull request. 
+se aceptan mas secciones o informacion a parte de las debidas y necesarias del template definido
