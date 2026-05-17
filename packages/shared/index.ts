@@ -31,3 +31,48 @@ export interface UpdateMemberRequest {
   category?: MemberCategory;
   status?: MemberStatus;
 }
+
+// ==========================================
+// MedicalCertificate
+// ==========================================
+
+export interface MedicalCertificateDTO {
+    id: string; // UUID
+    memberId: string; // UUID del socio asociado
+    issueDate: string; // ISO Date String (YYYY-MM-DD)
+    expiryDate: string; // ISO Date String (YYYY-MM-DD)
+    doctorLicense: string;
+    isValidated: boolean;
+}
+
+export interface CreateMedicalCertificateRequest {
+    memberId: string;
+    issueDate: string; // ISO Date String (YYYY-MM-DD)
+    expiryDate: string; // ISO Date String (YYYY-MM-DD)
+    doctorLicense: string;
+}
+
+export interface UpdateMedicalCertificateRequest {
+    isValidated: boolean;
+}
+
+// ==========================================
+// Sport
+// ==========================================
+
+export interface SportDTO {
+    id: string; // UUID
+    name: string;
+    description: string;
+    max_capacity: number;
+    additional_price: number;
+    requires_medical_certificate: boolean;
+}
+
+export interface CreateSportRequest {
+    name: string;
+    description: string;
+    max_capacity: number;
+    additional_price?: number;
+    requires_medical_certificate: boolean;
+}
