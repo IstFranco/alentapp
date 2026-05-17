@@ -43,6 +43,32 @@ export class PrismaSportRepository implements SportRepository {
         return sport ? this.mapToDomain(sport) : null;
     }
 
+    async findById(id: string): Promise<Sport | null> {
+        const sport = await prisma.sport.findUnique({
+            where: { id },
+        });
+
+        return sport ? this.mapToDomain(sport) : null;
+    }
+
+    async findAll(name?: string): Promise<Sport[]> {
+        const sports = await prisma.sport.findMany({
+            where: name
+                ? {
+                    name: {
+                        contains: name,
+                        mode: 'insensitive',
+                    },
+                }
+                : undefined,
+            orderBy: {
+                name: 'asc',
+            },
+        });
+
+        return sports.map((sport) => this.mapToDomain(sport));
+    }
+
     private mapToDomain(sport: DBSport): Sport {
         return new Sport(
             sport.id,

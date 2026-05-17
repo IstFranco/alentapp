@@ -2,6 +2,7 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { CreateSportRequest } from '@alentapp/shared';
 import { CreateSportUseCase } from '../application/CreateSportUseCase.js';
+import { GetAllSportsUseCase } from '../application/GetAllSportsUseCase.js';
 
 const createSportSchema = z.object({
     name: z.string().trim().min(1, 'El nombre del deporte es obligatorio'),
@@ -12,7 +13,28 @@ const createSportSchema = z.object({
 }).strict();
 
 export class SportController {
-    constructor(private readonly createSportUseCase: CreateSportUseCase) {}
+    constructor(
+        private readonly createSportUseCase: CreateSportUseCase,
+        private readonly getAllSportsUseCase: GetAllSportsUseCase,
+    ) {}
+
+    async getAll(
+        request: FastifyRequest<{ Querystring: { name?: string } }>,
+        reply: FastifyReply,
+    ) {
+        try {
+            const sports = await this.getAllSportsUseCase.execute(request.query.name);
+            return reply.status(200).send({ data: sports });
+        } catch (error: any) {
+            if (error.message.includes('no puede estar vacio')) {
+                return reply.status(400).send({ error: error.message });
+            }
+            if (error.message.includes('No existen deportes')) {
+                return reply.status(404).send({ error: error.message });
+            }
+            return reply.status(500).send({ error: 'Error interno, reintente mas tarde' });
+        }
+    }
 
     async create(
         request: FastifyRequest<{ Body: CreateSportRequest }>,

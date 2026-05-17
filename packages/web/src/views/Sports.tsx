@@ -1,158 +1,313 @@
-import { useState, type FormEvent } from 'react';
-import { Box, Button, Flex, Heading, Input, Stack, Text, Textarea } from '@chakra-ui/react';
-import { LuPlus } from 'react-icons/lu';
+import { useEffect, useState, type FormEvent } from 'react';
+import {
+    Box,
+    Button,
+    Center,
+    Flex,
+    HStack,
+    Heading,
+    Input,
+    Spinner,
+    Stack,
+    Table,
+    Text,
+    Textarea,
+} from '@chakra-ui/react';
+import { LuPlus, LuRefreshCw, LuSearch } from 'react-icons/lu';
 import type { CreateSportRequest, SportDTO } from '@alentapp/shared';
 import { sportsService } from '../services/sports';
 import { Field } from '../components/ui/field';
+import {
+    DialogRoot,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogBody,
+    DialogFooter,
+    DialogActionTrigger,
+    DialogCloseTrigger,
+} from '../components/ui/dialog';
+
+const initialFormData: CreateSportRequest = {
+    name: '',
+    description: '',
+    max_capacity: 1,
+    additional_price: 0,
+    requires_medical_certificate: false,
+};
+
+const initialNumericFields = {
+    max_capacity: '1',
+    additional_price: '0',
+};
 
 export function SportsView() {
-    const [createdSports, setCreatedSports] = useState<SportDTO[]>([]);
+    const [sports, setSports] = useState<SportDTO[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [searchName, setSearchName] = useState('');
+
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-    const [formData, setFormData] = useState<CreateSportRequest>({
-        name: '',
-        description: '',
-        max_capacity: 1,
-        additional_price: 0,
-        requires_medical_certificate: false,
-    });
+    const [formData, setFormData] = useState<CreateSportRequest>(initialFormData);
+    const [numericFields, setNumericFields] = useState(initialNumericFields);
+    const [formError, setFormError] = useState<string | null>(null);
+
+    const fetchSports = async (name?: string) => {
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const data = await sportsService.getAll(name);
+            setSports(data);
+        } catch (err: any) {
+            setSports([]);
+            setError(err.message || 'Error al cargar los deportes');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const openCreateModal = () => {
+        setFormData(initialFormData);
+        setNumericFields(initialNumericFields);
+        setFormError(null);
+        setIsDialogOpen(true);
+    };
+
+    const handleSearch = (event: FormEvent) => {
+        event.preventDefault();
+        const normalizedName = searchName.trim();
+
+        if (!normalizedName) {
+            setError('Ingrese un nombre para buscar o use Actualizar para ver todos los deportes');
+            return;
+        }
+
+        fetchSports(normalizedName);
+    };
+
+    const handleRefresh = () => {
+        setSearchName('');
+        fetchSports();
+    };
 
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
         setIsSubmitting(true);
-        setFeedback(null);
+        setFormError(null);
 
         try {
-            const created = await sportsService.create(formData);
-            setCreatedSports((current) => [created, ...current]);
-            setFormData({
-                name: '',
-                description: '',
-                max_capacity: 1,
-                additional_price: 0,
-                requires_medical_certificate: false,
+            await sportsService.create({
+                ...formData,
+                max_capacity: Number(numericFields.max_capacity),
+                additional_price: Number(numericFields.additional_price || 0),
             });
-            setFeedback({ type: 'success', message: 'Deporte creado con exito' });
-        } catch (error: any) {
-            setFeedback({ type: 'error', message: error.message || 'Error al crear el deporte' });
+            setIsDialogOpen(false);
+            setFormData(initialFormData);
+            setNumericFields(initialNumericFields);
+            setSearchName('');
+            fetchSports();
+        } catch (err: any) {
+            setFormError(err.message || 'Error al crear el deporte');
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    useEffect(() => {
+        fetchSports();
+    }, []);
+
     return (
-        <Stack gap="8" translate="no">
-            <Flex justify="space-between" align="center">
-                <Stack gap="1">
-                    <Heading size="2xl" fontWeight="bold">Deportes</Heading>
-                    <Text color="fg.muted">Gestiona el alta de disciplinas deportivas del club.</Text>
-                </Stack>
-            </Flex>
-
-            <Box as="form" onSubmit={handleSubmit} bg="bg.panel" borderWidth="1px" borderRadius="xl" p="6" maxW="2xl">
-                <Stack gap="4">
-                    <Box
-                        minH="44px"
-                        p="3"
-                        borderRadius="md"
-                        borderWidth="1px"
-                        borderColor={feedback ? (feedback.type === 'success' ? 'green.200' : 'red.200') : 'transparent'}
-                        bg={feedback ? (feedback.type === 'success' ? 'green.50' : 'red.50') : 'transparent'}
-                        color={feedback ? (feedback.type === 'success' ? 'green.700' : 'red.700') : 'transparent'}
-                    >
-                        <Text fontSize="sm" fontWeight="medium">
-                            {feedback?.message || ' '}
+        <DialogRoot open={isDialogOpen} onOpenChange={(event) => setIsDialogOpen(event.open)}>
+            <Stack gap="8" translate="no">
+                <Flex justify="space-between" align="center" gap="4" wrap="wrap">
+                    <Stack gap="1">
+                        <Heading size="2xl" fontWeight="bold">Administracion de Deportes</Heading>
+                        <Text color="fg.muted" fontSize="md">
+                            Consulta y administra la oferta deportiva del club.
                         </Text>
+                    </Stack>
+                    <HStack gap="3">
+                        <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
+                            <LuRefreshCw /> Actualizar
+                        </Button>
+                        <Button colorPalette="blue" size="md" onClick={openCreateModal}>
+                            <LuPlus /> Agregar Deporte
+                        </Button>
+                    </HStack>
+                </Flex>
+
+                <Box as="form" onSubmit={handleSearch}>
+                    <HStack gap="3" align="flex-end" maxW="xl">
+                        <Field label="Buscar por nombre">
+                            <Input
+                                value={searchName}
+                                onChange={(event) => setSearchName(event.target.value)}
+                                placeholder="Ej. Tenis"
+                            />
+                        </Field>
+                        <Button type="submit" variant="outline" disabled={isLoading}>
+                            <LuSearch /> Buscar
+                        </Button>
+                    </HStack>
+                </Box>
+
+                <DialogContent>
+                    <form onSubmit={handleSubmit}>
+                        <DialogHeader>
+                            <DialogTitle>Agregar Nuevo Deporte</DialogTitle>
+                        </DialogHeader>
+                        <DialogBody>
+                            <Stack gap="4">
+                                {formError && (
+                                    <Box p="3" bg="red.50" color="red.700" borderRadius="md" borderWidth="1px" borderColor="red.200">
+                                        <Text fontSize="sm" fontWeight="medium">{formError}</Text>
+                                    </Box>
+                                )}
+
+                                <Field label="Nombre" required>
+                                    <Input
+                                        value={formData.name}
+                                        onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+                                        placeholder="Ej. Tenis"
+                                        required
+                                    />
+                                </Field>
+
+                                <Field label="Descripcion" required>
+                                    <Textarea
+                                        value={formData.description}
+                                        onChange={(event) => setFormData({ ...formData, description: event.target.value })}
+                                        placeholder="Detalle de la actividad"
+                                        required
+                                    />
+                                </Field>
+
+                                <Field label="Cupo maximo" required>
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        step={1}
+                                        value={numericFields.max_capacity}
+                                        onChange={(event) => setNumericFields({
+                                            ...numericFields,
+                                            max_capacity: event.target.value,
+                                        })}
+                                        required
+                                    />
+                                </Field>
+
+                                <Field label="Precio adicional">
+                                    <Input
+                                        type="number"
+                                        min={0}
+                                        step="0.01"
+                                        value={numericFields.additional_price}
+                                        onChange={(event) => setNumericFields({
+                                            ...numericFields,
+                                            additional_price: event.target.value,
+                                        })}
+                                    />
+                                </Field>
+
+                                <Box as="label" display="flex" alignItems="center" gap="2" fontSize="sm" fontWeight="medium">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.requires_medical_certificate}
+                                        onChange={(event) => setFormData({
+                                            ...formData,
+                                            requires_medical_certificate: event.target.checked,
+                                        })}
+                                    />
+                                    Requiere certificado medico
+                                </Box>
+                            </Stack>
+                        </DialogBody>
+                        <DialogFooter>
+                            <DialogActionTrigger asChild>
+                                <Button variant="outline">Cancelar</Button>
+                            </DialogActionTrigger>
+                            <Button type="submit" colorPalette="blue" loading={isSubmitting}>
+                                Crear Deporte
+                            </Button>
+                        </DialogFooter>
+                        <DialogCloseTrigger />
+                    </form>
+                </DialogContent>
+
+                {error && (
+                    <Box p="4" bg="red.50" color="red.700" borderRadius="md" border="1px solid" borderColor="red.200">
+                        <Text fontWeight="bold">Error:</Text>
+                        <Text>{error}</Text>
                     </Box>
-
-                    <Field label="Nombre" required>
-                        <Input
-                            value={formData.name}
-                            onChange={(event) => setFormData({ ...formData, name: event.target.value })}
-                            placeholder="Ej. Tenis"
-                            required
-                        />
-                    </Field>
-
-                    <Field label="Descripcion" required>
-                        <Textarea
-                            value={formData.description}
-                            onChange={(event) => setFormData({ ...formData, description: event.target.value })}
-                            placeholder="Detalle de la actividad"
-                            required
-                        />
-                    </Field>
-
-                    <Field label="Cupo maximo" required>
-                        <Input
-                            type="number"
-                            min={1}
-                            step={1}
-                            value={formData.max_capacity}
-                            onChange={(event) => setFormData({
-                                ...formData,
-                                max_capacity: Number(event.target.value) || 1,
-                            })}
-                            required
-                        />
-                    </Field>
-
-                    <Field label="Precio adicional">
-                        <Input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={formData.additional_price ?? 0}
-                            onChange={(event) => setFormData({
-                                ...formData,
-                                additional_price: Number(event.target.value) || 0,
-                            })}
-                        />
-                    </Field>
-
-                    <Box
-                        as="label"
-                        display="flex"
-                        alignItems="center"
-                        gap="2"
-                        fontSize="sm"
-                        fontWeight="medium"
-                    >
-                        <input
-                            type="checkbox"
-                            checked={formData.requires_medical_certificate}
-                            onChange={(event) => setFormData({
-                                ...formData,
-                                requires_medical_certificate: event.target.checked,
-                            })}
-                        />
-                        Requiere certificado medico
-                    </Box>
-
-                    <Button type="submit" colorPalette="blue" loading={isSubmitting} alignSelf="flex-end">
-                        <LuPlus /> Crear Deporte
-                    </Button>
-                </Stack>
-            </Box>
-
-            <Stack gap="3" minH="120px">
-                <Heading size="md">Ultimos deportes creados</Heading>
-                {createdSports.length === 0 ? (
-                    <Box borderWidth="1px" borderRadius="lg" p="4" bg="bg.panel">
-                        <Text color="fg.muted">Todavia no se crearon deportes desde esta pantalla.</Text>
-                    </Box>
-                ) : (
-                    createdSports.map((sport) => (
-                        <Box key={sport.id} borderWidth="1px" borderRadius="lg" p="4" bg="bg.panel">
-                            <Text fontWeight="bold">{sport.name}</Text>
-                            <Text color="fg.muted">{sport.description}</Text>
-                            <Text fontSize="sm" color="fg.muted">
-                                Cupo: {sport.max_capacity} | Precio adicional: ${sport.additional_price}
-                            </Text>
-                        </Box>
-                    ))
                 )}
+
+                <Box
+                    bg="bg.panel"
+                    borderRadius="xl"
+                    boxShadow="sm"
+                    borderWidth="1px"
+                    overflow="hidden"
+                    minH="300px"
+                    position="relative"
+                >
+                    {isLoading ? (
+                        <Center h="300px">
+                            <Stack align="center" gap="4">
+                                <Spinner size="xl" color="blue.500" />
+                                <Text color="fg.muted">Cargando deportes...</Text>
+                            </Stack>
+                        </Center>
+                    ) : sports.length === 0 ? (
+                        <Center h="300px">
+                            <Stack align="center" gap="4">
+                                <Text color="fg.muted">No se encontraron deportes.</Text>
+                                <Button variant="ghost" onClick={handleRefresh}>Reintentar</Button>
+                            </Stack>
+                        </Center>
+                    ) : (
+                        <Table.Root size="md" variant="line" interactive>
+                            <Table.Header>
+                                <Table.Row bg="bg.muted/50">
+                                    <Table.ColumnHeader py="4">Nombre</Table.ColumnHeader>
+                                    <Table.ColumnHeader py="4">Descripcion</Table.ColumnHeader>
+                                    <Table.ColumnHeader py="4">Cupo Maximo</Table.ColumnHeader>
+                                    <Table.ColumnHeader py="4">Precio Adicional</Table.ColumnHeader>
+                                    <Table.ColumnHeader py="4">Certificado Medico</Table.ColumnHeader>
+                                </Table.Row>
+                            </Table.Header>
+                            <Table.Body>
+                                {sports.map((sport) => (
+                                    <Table.Row key={sport.id} _hover={{ bg: 'bg.muted/30' }}>
+                                        <Table.Cell fontWeight="semibold" color="fg.emphasized">
+                                            {sport.name}
+                                        </Table.Cell>
+                                        <Table.Cell color="fg.muted">{sport.description}</Table.Cell>
+                                        <Table.Cell color="fg.muted">{sport.max_capacity}</Table.Cell>
+                                        <Table.Cell color="fg.muted">${sport.additional_price}</Table.Cell>
+                                        <Table.Cell>
+                                            <Box
+                                                display="inline-block"
+                                                px="2"
+                                                py="0.5"
+                                                borderRadius="md"
+                                                bg={sport.requires_medical_certificate ? 'orange.50' : 'green.50'}
+                                                color={sport.requires_medical_certificate ? 'orange.700' : 'green.700'}
+                                                fontSize="xs"
+                                                fontWeight="bold"
+                                            >
+                                                {sport.requires_medical_certificate ? 'Requerido' : 'No requerido'}
+                                            </Box>
+                                        </Table.Cell>
+                                    </Table.Row>
+                                ))}
+                            </Table.Body>
+                        </Table.Root>
+                    )}
+                </Box>
             </Stack>
-        </Stack>
+        </DialogRoot>
     );
 }
