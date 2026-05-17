@@ -4,6 +4,13 @@ Todos los cambios importantes de este proyecto se documentan en este archivo.
 
 ENTIDAD: MEDICAL CERTIFICATES
 ---
+## [1.5.0] - 2026-05-17
+
+### Added
+- Se implementa el backend de la Baja para Medical Certificates según el TDD-0006 (endpoint `DELETE /api/v1/medical-certificates/:id`).
+- Se implementa baja lógica usando el campo `deletedAt`, sin afectar otros campos del certificado.
+
+---
 ## [1.4.0] - 2026-05-17
 
 ### Added

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { CreateMedicalCertificateUseCase } from '../application/NewMedicalCertificateUseCase.js';
 import { GetMedicalCertificatesUseCase } from '../application/GetMedicalCertificatesUseCase.js';
 import { UpdateMedicalCertificateUseCase } from '../application/UpdateMedicalCertificateUseCase.js';
+import { DeleteMedicalCertificateUseCase } from '../application/DeleteMedicalCertificateUseCase.js';
 import { CreateMedicalCertificateRequest, UpdateMedicalCertificateRequest } from '@alentapp/shared';
 
 // Schema de validación de formato para el alta
@@ -24,6 +25,7 @@ export class MedicalCertificateController {
     private readonly createMedicalCertificateUseCase: CreateMedicalCertificateUseCase,
     private readonly getMedicalCertificatesUseCase: GetMedicalCertificatesUseCase,
     private readonly updateMedicalCertificateUseCase: UpdateMedicalCertificateUseCase,
+    private readonly deleteMedicalCertificateUseCase: DeleteMedicalCertificateUseCase,
 ) {}
 
     async getAll(_request: FastifyRequest, reply: FastifyReply) {
@@ -77,6 +79,22 @@ export class MedicalCertificateController {
             const { id } = request.params;
             const certificate = await this.updateMedicalCertificateUseCase.execute(id, parseResult.data);
             return reply.status(200).send({ data: certificate });
+        } catch (error: any) {
+            if (error.message.includes('no existe')) {
+                return reply.status(404).send({ error: error.message });
+            }
+            return reply.status(500).send({ error: 'Error interno, reintente más tarde' });
+        }
+    }
+
+    async delete(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+    ) {
+        try {
+            const { id } = request.params;
+            await this.deleteMedicalCertificateUseCase.execute(id);
+            return reply.status(204).send();
         } catch (error: any) {
             if (error.message.includes('no existe')) {
                 return reply.status(404).send({ error: error.message });

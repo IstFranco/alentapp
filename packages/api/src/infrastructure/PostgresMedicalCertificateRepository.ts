@@ -87,6 +87,13 @@ export class PostgresMedicalCertificateRepository implements MedicalCertificateR
         return this.mapToDTO(updated);
     }
 
+    async softDelete(id: string): Promise<void> {
+        await prisma.medicalCertificate.update({
+            where: { id },
+            data: { deletedAt: new Date() },
+        });
+    }
+
     private mapToDTO(cert: DBMedicalCertificate): MedicalCertificateDTO {
         return {
             id: cert.id,
