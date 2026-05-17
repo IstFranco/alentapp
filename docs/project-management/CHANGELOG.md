@@ -4,6 +4,14 @@ Todos los cambios importantes de este proyecto se documentan en este archivo.
 
 ENTIDAD: MEDICAL CERTIFICATES
 ---
+## [1.4.0] - 2026-05-17
+
+### Added
+- Se implementa el backend de la Modificación para Medical Certificates según el TDD-0005 (endpoint `PATCH /api/v1/medical-certificates/:id`).
+- Se agrega el DTO `UpdateMedicalCertificateRequest` en `@alentapp/shared`.
+- Se agregan los métodos `findById` y `updateValidationStatus` al repositorio.
+
+---
 ## [1.3.0] - 2026-05-16
 
 ### Added
